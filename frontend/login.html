@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | MobileStore Kenya</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @keyframes breathe { 0%, 100% { box-shadow: 0 0 5px rgba(220, 38, 38, 0.4); } 50% { box-shadow: 0 0 20px rgba(220, 38, 38, 0.8); } }
+        .logo-box { animation: breathe 3s infinite ease-in-out; }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans min-h-screen flex flex-col justify-center items-center p-6">
+
+    <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl p-8 border border-gray-100">
+        <div class="text-center mb-10">
+            <a href="index.html" class="inline-block mb-4">
+                <div class="logo-box bg-red-600 text-white p-2 rounded-lg font-bold text-2xl w-14 h-14 flex items-center justify-center mx-auto">MS</div>
+            </a>
+            <h1 class="text-3xl font-black text-gray-900">Welcome Back</h1>
+            <p class="text-gray-500 mt-2">Sign in to manage your tech orders</p>
+        </div>
+
+        <button onclick="continueWithGoogle()" class="w-full bg-white border border-gray-200 text-gray-700 py-3 rounded-2xl font-semibold flex items-center justify-center gap-3 hover:bg-gray-50 transition mb-6 shadow-sm">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20">
+            Continue with Google
+        </button>
+
+        <div class="relative my-6 text-center">
+            <span class="bg-white px-4 text-xs font-bold text-gray-400 uppercase relative z-10">Or use email</span>
+            <hr class="absolute top-1/2 w-full border-gray-100">
+        </div>
+
+        <form class="space-y-4" id="loginForm">
+            <input type="email" id="emailInput" placeholder="Email Address" required class="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-red-500 outline-none transition shadow-sm">
+            
+            <div class="relative">
+                <input type="password" id="passwordInput" placeholder="Password" required class="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-red-500 outline-none transition shadow-sm pr-12">
+                <button type="button" onclick="togglePasswordVisibility()" class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none">
+                    <i id="passwordToggleIcon" class="fa-solid fa-eye"></i>
+                </button>
+            </div>
+            
+            <button type="button" onclick="handleLogin()" class="w-full bg-zinc-900 text-white py-4 rounded-2xl font-bold hover:bg-black transition transform active:scale-95 shadow-lg uppercase tracking-widest">Login</button>
+        </form>
+
+        <p class="text-center mt-8 text-gray-500 text-sm">
+            Don't have an account? <a href="register.html" class="text-red-600 font-bold hover:underline">Register here</a>
+        </p>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-analytics.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBXNIH-FMYjgzSKS1ZRdwOUkcDhW49Plzc",
+            authDomain: "mobilestorekenya-80a5d.firebaseapp.com",
+            projectId: "mobilestorekenya-80a5d",
+            storageBucket: "mobilestorekenya-80a5d.firebasestorage.app",
+            messagingSenderId: "1028555607347",
+            appId: "1:1028555607347:web:283d2971bd599b26c00246",
+            measurementId: "G-M11REG80ZQ"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const analytics = getAnalytics(app);
+
+        // Define Google Login Function
+        window.continueWithGoogle = async function() {
+            const provider = new GoogleAuthProvider();
+            try {
+                const result = await signInWithPopup(auth, provider);
+                const user = result.user;
+
+                // Save basic profile to localStorage so navbar/profile can reflect immediately
+                const profile = {
+                    name: user.displayName || '',
+                    email: user.email || '',
+                    imageUrl: user.photoURL || ''
+                };
+                localStorage.setItem('googleUser', JSON.stringify(profile));
+
+                // Inform backend (optional). If backend returns a token, store it.
+                try {
+                    const response = await fetch('http://localhost:5000/api/auth/google-login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username: profile.name, email: profile.email })
+                    });
+                    if (response.ok) {
+                        const data = await response.json().catch(() => null);
+                        if (data && data.token) {
+                            localStorage.setItem('authToken', data.token);
+                            if (data.role) localStorage.setItem('userRole', data.role);
+                        }
+                    }
+                } catch (e) {
+                    console.warn('Backend google-login failed:', e);
+                }
+
+                // Redirect to homepage so navbar/profile reflect signed-in Google user
+                window.location.href = "index.html";
+            } catch (error) {
+                console.error("Google Sign-in Error:", error);
+                alert("Google Sign-in failed. Please try again.");
+            }
+        };
+
+        // Expose helper functions to global scope
+        window.togglePasswordVisibility = function() {
+            const passwordInput = document.getElementById('passwordInput');
+            const toggleIcon = document.getElementById('passwordToggleIcon');
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+            }
+        };
+
+        window.handleLogin = async function() {
+            const email = document.getElementById('emailInput').value.trim();
+            const password = document.getElementById('passwordInput').value.trim();
+            if (!email || !password) {
+                alert('Please enter both email and password.');
+                return;
+            }
+            try {
+                const response = await fetch('http://localhost:5000/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await response.json();
+                if (response.status === 200) {
+                    localStorage.setItem('authToken', data.token);
+                    localStorage.setItem('userRole', data.role);
+                    if (data.user) {
+                        localStorage.setItem('loggedInUser', JSON.stringify({
+                            firstName: data.user.firstName,
+                            lastName: data.user.lastName,
+                            email: data.user.email,
+                            phone: data.user.phone,
+                            username: data.user.username
+                        }));
+                    }
+                    if (data.role === 'admin') {
+                        window.location.href = 'admin.html';
+                    } else {
+                        window.location.href = 'index.html';
+                    }
+                } else {
+                    alert('Login failed: ' + (data.message || data));
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Connection error. Make sure the backend is running on port 5000.');
+            }
+        };
+    </script>
+</body>
+</html>

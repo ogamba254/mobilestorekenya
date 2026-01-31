@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MS Admin | MobileStore Kenya Control Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .sidebar-link.active { background: #dc2626; color: white; border-radius: 12px; }
+        .dark { background-color: #09090b; color: #fafafa; }
+        #add-product-modal {
+            display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px); z-index: 1000; align-items: center; justify-content: center; padding: 20px;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-zinc-950 font-sans transition-colors duration-300">
+
+    <div id="add-product-modal">
+        <div class="bg-white dark:bg-zinc-900 w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden p-8">
+            <div class="flex justify-between items-center mb-6">
+                <h3 id="modal-title" class="text-2xl font-black dark:text-white uppercase">Add New Item</h3>
+                <button onclick="closeProductModal()" class="text-gray-400 hover:text-red-600 transition"><i class="fa-solid fa-circle-xmark text-2xl"></i></button>
+            </div>
+
+            <form id="product-form" class="space-y-4" onsubmit="handleProductSubmit(event)">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold uppercase text-gray-400">Category</label>
+                        <select id="item-category" required class="w-full bg-gray-50 dark:bg-zinc-800 border dark:border-zinc-700 p-3 rounded-xl dark:text-white">
+                            <option value="Smartphone">Smartphone</option>
+                            <option value="Smart TV">Smart TV</option>
+                            <option value="Laptop">Laptop</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold uppercase text-gray-400">Product Name</label>
+                        <input type="text" id="item-name" required class="w-full bg-gray-50 dark:bg-zinc-800 border dark:border-zinc-700 p-3 rounded-xl dark:text-white">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold uppercase text-gray-400">Current Price (KSh)</label>
+                        <input type="number" id="item-price" required class="w-full bg-gray-50 dark:bg-zinc-800 border dark:border-zinc-700 p-3 rounded-xl dark:text-white">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold uppercase text-gray-400">Old Price / Discount (KSh)</label>
+                        <input type="number" id="item-old-price" placeholder="Leave empty if no discount" class="w-full bg-gray-50 dark:bg-zinc-800 border dark:border-zinc-700 p-3 rounded-xl dark:text-white">
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-xs font-bold uppercase text-gray-400">Product Image</label>
+                    <div class="flex items-center gap-4">
+                        <div class="w-16 h-16 bg-gray-100 dark:bg-zinc-800 rounded-xl flex items-center justify-center overflow-hidden">
+                            <img id="preview-img" src="" class="hidden w-full h-full object-cover">
+                            <i id="preview-icon" class="fa-solid fa-image text-gray-400"></i>
+                        </div>
+                        <input type="file" id="item-image" accept="image/*" onchange="previewFile()" class="text-sm dark:text-gray-400">
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-xs font-bold uppercase text-gray-400">Details</label>
+                    <textarea id="item-details" rows="2" class="w-full bg-gray-50 dark:bg-zinc-800 border dark:border-zinc-700 p-3 rounded-xl dark:text-white"></textarea>
+                </div>
+
+                <button type="submit" class="w-full bg-red-600 text-white py-4 rounded-2xl font-black uppercase tracking-widest hover:bg-red-700 transition">Save & Sync to Store</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="flex h-screen overflow-hidden">
+        <aside class="w-64 bg-white dark:bg-zinc-900 border-r dark:border-zinc-800 flex flex-col p-6">
+            <div class="flex items-center space-x-3 mb-10">
+                <div class="bg-red-600 text-white p-2 rounded-lg font-bold">MS</div>
+                <span class="text-xl font-black uppercase dark:text-white">Admin Hub</span>
+            </div>
+            <nav class="space-y-2 flex-1">
+                <button onclick="showSection('dashboard')" class="sidebar-link active w-full flex items-center space-x-3 p-3 text-sm font-bold"><i class="fa-solid fa-chart-line"></i> <span>Dashboard</span></button>
+                <button onclick="showSection('inventory')" class="sidebar-link w-full flex items-center space-x-3 p-3 text-sm font-bold text-gray-500"><i class="fa-solid fa-box"></i> <span>Inventory</span></button>
+                <button onclick="showSection('orders')" class="sidebar-link w-full flex items-center space-x-3 p-3 text-sm font-bold text-gray-500"><i class="fa-solid fa-receipt"></i> <span>Orders</span></button>
+            </nav>
+            <a href="index.html" class="p-3 text-sm font-bold text-red-600 hover:underline"><i class="fa-solid fa-shop mr-2"></i> Visit Live Store</a>
+        </aside>
+
+        <main class="flex-1 overflow-y-auto p-8">
+            <header class="flex justify-between items-center mb-8">
+                <h2 id="section-title" class="text-3xl font-black dark:text-white uppercase">Dashboard Overview</h2>
+            </header>
+
+            <div id="dashboard-section" class="space-y-8">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-white dark:bg-zinc-900 p-6 rounded-3xl shadow-sm border dark:border-zinc-800">
+                        <p class="text-gray-400 text-xs font-bold uppercase mb-1">Total Products</p>
+                        <h3 id="stat-count" class="text-3xl font-black dark:text-white">0</h3>
+                    </div>
+                </div>
+                <div class="bg-white dark:bg-zinc-900 p-8 rounded-[2.5rem] border dark:border-zinc-800">
+                    <canvas id="salesChart" height="100"></canvas>
+                </div>
+            </div>
+
+            <div id="inventory-section" class="hidden space-y-6">
+                <div class="flex justify-between items-center">
+                    <h3 class="font-bold text-xl dark:text-white">Product Management</h3>
+                    <button onclick="openProductModal()" class="bg-red-600 text-white px-6 py-3 rounded-2xl font-bold uppercase text-xs">Add Product</button>
+                </div>
+                <div class="flex items-center gap-3 bg-white dark:bg-zinc-900 p-4 rounded-2xl border dark:border-zinc-800">
+                    <i class="fa-solid fa-magnifying-glass text-gray-400 text-lg"></i>
+                    <input type="text" id="product-search" placeholder="Search products by name or category..." oninput="handleProductSearch(this.value)" class="w-full bg-transparent outline-none dark:text-white text-sm font-medium placeholder-gray-400">
+                    <span id="search-count" class="text-xs text-gray-500 font-bold"></span>
+                </div>
+                <div class="bg-white dark:bg-zinc-900 rounded-[2rem] border dark:border-zinc-800 overflow-hidden">
+                    <table class="w-full text-left">
+                        <thead class="bg-gray-50 dark:bg-zinc-800 text-gray-500 text-xs uppercase">
+                            <tr><th class="p-5">Product</th><th class="p-5">Category</th><th class="p-5">Price</th><th class="p-5 text-right">Action</th></tr>
+                        </thead>
+                        <tbody id="inventory-table"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div id="orders-section" class="hidden space-y-6">
+                <div class="flex justify-between items-center">
+                    <h3 class="font-bold text-xl dark:text-white">Customer Orders</h3>
+                </div>
+                <div class="bg-white dark:bg-zinc-900 rounded-[2rem] border dark:border-zinc-800 overflow-hidden p-4">
+                    <table class="w-full text-left">
+                        <thead class="bg-gray-50 dark:bg-zinc-800 text-gray-500 text-xs uppercase">
+                            <tr>
+                                <th class="p-3">Order</th>
+                                <th class="p-3">Customer</th>
+                                <th class="p-3">Items</th>
+                                <th class="p-3">Total</th>
+                                <th class="p-3">Status</th>
+                                <th class="p-3">Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orders-table"></tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5000/api/products';
+        let inventory = [];
+        let filteredInventory = [];
+        let editingProductId = null;
+        let searchQuery = '';
+
+        // Check if user is logged in as admin
+        window.addEventListener('load', () => {
+            const token = localStorage.getItem('authToken');
+            const role = localStorage.getItem('userRole');
+            
+            if (!token || role !== 'admin') {
+                alert('Access denied. Admin login required.');
+                window.location.href = 'login.html';
+                return;
+            }
+            loadInventoryFromAPI();
+            updateStats();
+            loadAdminOrders();
+        });
+
+        // Fetch products from API
+        async function loadInventoryFromAPI() {
+            try {
+                const response = await fetch(API_URL);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const text = await response.text();
+                if (!text) {
+                    console.log('Empty response from server');
+                    inventory = [];
+                    loadInventory();
+                    return;
+                }
+
+                inventory = JSON.parse(text);
+                loadInventory();
+            } catch (error) {
+                console.error('Error loading inventory:', error);
+                alert('Failed to load products from server: ' + error.message);
+                inventory = [];
+                loadInventory();
+            }
+        }
+
+        function saveToStorage() {
+            localStorage.setItem('msk_inventory', JSON.stringify(inventory));
+            loadInventory();
+            updateStats();
+        }
+
+        function previewFile() {
+            const preview = document.getElementById('preview-img');
+            const file = document.getElementById('item-image').files[0];
+            const reader = new FileReader();
+            reader.onloadend = () => { preview.src = reader.result; preview.classList.remove('hidden'); document.getElementById('preview-icon').classList.add('hidden'); }
+            if (file) reader.readAsDataURL(file);
+        }
+
+        async function handleProductSubmit(e) {
+            e.preventDefault();
+            
+            const token = localStorage.getItem('authToken');
+            if (!token) {
+                alert('You must be logged in as admin to add products');
+                return;
+            }
+
+            const newItem = {
+                name: document.getElementById('item-name').value,
+                price: parseInt(document.getElementById('item-price').value),
+                oldPrice: document.getElementById('item-old-price').value ? parseInt(document.getElementById('item-old-price').value) : null,
+                category: document.getElementById('item-category').value,
+                img: document.getElementById('preview-img').src || 'https://via.placeholder.com/150',
+                details: document.getElementById('item-details').value.split('\n').filter(d => d.trim())
+            };
+
+            try {
+                let url = `${API_URL}/add`;
+                let method = 'POST';
+
+                // If editing, use PUT method
+                if (editingProductId) {
+                    url = `${API_URL}/${editingProductId}`;
+                    method = 'PUT';
+                }
+
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(newItem)
+                });
+
+                if (!response.ok) {
+                    const text = await response.text();
+                    console.error('Server response:', text);
+                    alert('Failed to save product: ' + text);
+                    return;
+                }
+
+                const data = await response.json();
+
+                if (response.status === 201 || response.status === 200) {
+                    if (editingProductId) {
+                        alert('Product updated successfully! ✅');
+                    } else {
+                        alert('Product added successfully! 🎉');
+                    }
+                    loadInventoryFromAPI();
+                    closeProductModal();
+                } else {
+                    alert('Failed to save product: ' + (data.msg || data.message || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Full Error:', error);
+                alert('Error: ' + error.message + '\n\nMake sure backend is running on http://localhost:5000');
+            }
+        }
+
+        function loadInventory() {
+            const table = document.getElementById('inventory-table');
+            const displayItems = searchQuery ? filteredInventory : inventory;
+            table.innerHTML = displayItems.map((item) => `
+                <tr class="border-t dark:border-zinc-800 dark:text-white">
+                    <td class="p-5 flex items-center gap-3">
+                        <img src="${item.img || 'https://via.placeholder.com/150'}" class="w-10 h-10 rounded shadow object-cover">
+                        <span class="font-bold">${item.name}</span>
+                    </td>
+                    <td class="p-5 text-sm">${item.category}</td>
+                    <td class="p-5">
+                        <span class="text-red-600 font-bold">KSh ${item.price.toLocaleString()}</span>
+                        ${item.oldPrice ? `<span class="text-xs text-gray-400 line-through ml-2">KSh ${item.oldPrice.toLocaleString()}</span>` : ''}
+                    </td>
+                    <td class="p-5 text-right">
+                        <button onclick="editItem('${item._id}')" class="text-gray-400 hover:text-blue-600 mr-3"><i class="fa-solid fa-edit"></i></button>
+                        <button onclick="deleteItem('${item._id}')" class="text-gray-400 hover:text-red-600"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+            
+            // Update search count
+            if (searchQuery) {
+                const searchCount = document.getElementById('search-count');
+                searchCount.textContent = `${displayItems.length} result${displayItems.length !== 1 ? 's' : ''}`;
+            } else {
+                document.getElementById('search-count').textContent = '';
+            }
+        }
+
+        function handleProductSearch(query) {
+            searchQuery = query.toLowerCase().trim();
+            if (searchQuery) {
+                filteredInventory = inventory.filter(item => 
+                    item.name.toLowerCase().includes(searchQuery) || 
+                    item.category.toLowerCase().includes(searchQuery)
+                );
+            }
+            loadInventory();
+        }
+
+        async function deleteItem(id) {
+            if(!confirm('Remove this product?')) return;
+            
+            const token = localStorage.getItem('authToken');
+            if (!token) {
+                alert('You must be logged in to delete products');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok || response.status === 404) {
+                    inventory = inventory.filter(item => item._id !== id);
+                    loadInventory();
+                    updateStats();
+                } else {
+                    alert('Failed to delete product');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Connection error');
+            }
+        }
+
+        function updateStats() { document.getElementById('stat-count').innerText = inventory.length; }
+        function openProductModal() { 
+            editingProductId = null;
+            document.getElementById('modal-title').innerText = 'Add New Item';
+            document.getElementById('product-form').reset();
+            document.getElementById('preview-img').src = '';
+            document.getElementById('preview-img').classList.add('hidden');
+            document.getElementById('preview-icon').classList.remove('hidden');
+            document.getElementById('add-product-modal').style.display = 'flex'; 
+        }
+        function closeProductModal() { 
+            editingProductId = null;
+            document.getElementById('add-product-modal').style.display = 'none'; 
+            document.getElementById('product-form').reset(); 
+            document.getElementById('preview-img').src = '';
+            document.getElementById('preview-img').classList.add('hidden');
+            document.getElementById('preview-icon').classList.remove('hidden');
+        }
+
+        async function editItem(id) {
+            const product = inventory.find(p => p._id === id);
+            if (!product) {
+                alert('Product not found');
+                return;
+            }
+
+            editingProductId = id;
+            document.getElementById('modal-title').innerText = 'Edit Product';
+            
+            // Fill form with current product data
+            document.getElementById('item-name').value = product.name;
+            document.getElementById('item-category').value = product.category;
+            document.getElementById('item-price').value = product.price;
+            document.getElementById('item-old-price').value = product.oldPrice || '';
+            document.getElementById('item-details').value = (product.details || []).join('\n');
+            
+            // Set image preview
+            if (product.img) {
+                document.getElementById('preview-img').src = product.img;
+                document.getElementById('preview-img').classList.remove('hidden');
+                document.getElementById('preview-icon').classList.add('hidden');
+            }
+            
+            document.getElementById('add-product-modal').style.display = 'flex';
+        }
+        
+        function showSection(section) {
+            document.getElementById('dashboard-section').classList.add('hidden');
+            document.getElementById('inventory-section').classList.add('hidden');
+            document.getElementById(section + '-section').classList.remove('hidden');
+            document.querySelectorAll('.sidebar-link').forEach(btn => btn.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+        }
+
+        // Initialize Chart
+        const salesCtx = document.getElementById('salesChart').getContext('2d');
+        new Chart(salesCtx, { type: 'line', data: { labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], datasets: [{ label: 'Sales', data: [5,12,8,15,10,20,18], borderColor: '#dc2626', tension: 0.4 }] } });
+
+        // Load all orders (admin)
+        async function loadAdminOrders() {
+            const token = localStorage.getItem('authToken');
+            if (!token) return;
+
+            try {
+                const resp = await fetch('http://localhost:5000/api/orders/all', { headers: { 'Authorization': 'Bearer ' + token } });
+                if (!resp.ok) throw new Error('Failed to fetch orders');
+                const orders = await resp.json();
+                renderOrdersTable(orders);
+            } catch (e) {
+                console.error('loadAdminOrders error', e);
+            }
+        }
+
+        function renderOrdersTable(orders) {
+            const tbody = document.getElementById('orders-table');
+            if (!tbody) return;
+            tbody.innerHTML = orders.map(o => {
+                const customer = o.user ? `${o.user.username || o.user.email}` : 'Guest';
+                const itemsHtml = (o.items || []).map(it => {
+                    const name = it.product ? it.product.name : (it.name || 'Unknown');
+                    const qty = it.quantity || 1;
+                    const price = (it.priceAtPurchase || (it.product && it.product.price) || 0).toLocaleString();
+                    return `<div class="flex items-center gap-2"><img src="${it.product && it.product.img ? it.product.img : 'https://via.placeholder.com/40'}" class="w-8 h-8 object-cover rounded"/><div><div class=\"font-bold\">${name}</div><div class=\"text-xs text-gray-400\">Qty: ${qty} • KSh ${price}</div></div></div>`;
+                }).join('<hr class="my-2"/>');
+
+                return `
+                    <tr class="border-t dark:border-zinc-800 dark:text-white align-top">
+                        <td class="p-3"><div class="font-bold">${o._id}</div><div class="text-xs text-gray-400">${o.paymentMethod || ''}</div></td>
+                        <td class="p-3">${customer}</td>
+                        <td class="p-3">${itemsHtml}</td>
+                        <td class="p-3">KSh <span class="font-black text-red-600">${(o.totalAmount || 0).toLocaleString()}</span></td>
+                        <td class="p-3">${o.status || ''}</td>
+                        <td class="p-3">${new Date(o.orderDate).toLocaleString()}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+    </script>
+</body>
+</html>

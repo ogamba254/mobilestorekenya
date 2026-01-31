@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Cart | MobileStore Kenya</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @keyframes breathe {
+            0%, 100% { box-shadow: 0 0 5px rgba(220, 38, 38, 0.4); }
+            50% { box-shadow: 0 0 20px rgba(220, 38, 38, 0.8); }
+        }
+        .logo-box { animation: breathe 3s infinite ease-in-out; transition: transform 0.3s ease; }
+        .logo-box:hover { transform: rotate(-10deg) scale(1.1); cursor: pointer; }
+        .bg-mpesa { background-color: #49aa47; }
+        .hover-mpesa:hover { background-color: #3d8e3b; }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans">
+
+    <nav class="bg-white shadow-md sticky top-0 z-50">
+        <div class="container mx-auto px-4 md:px-10 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="window.location.href='index.html'">
+                <div id="mainLogo" class="logo-box bg-red-600 text-white p-2 rounded-lg font-bold text-2xl flex items-center justify-center w-12 h-12">MS</div>
+                <div class="flex flex-col leading-tight">
+                    <span class="text-xl font-black text-gray-900 tracking-tighter uppercase">MobileStore</span>
+                    <span class="text-sm font-bold text-red-600 tracking-widest uppercase">Kenya</span>
+                </div>
+            </div>
+            <a href="index.html" class="text-gray-600 hover:text-red-600 font-bold text-sm">← Continue Shopping</a>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-4 md:px-10 py-12">
+        <h1 class="text-3xl font-black text-gray-900 mb-8">Shopping Basket <span class="text-red-600" id="itemCountDisplay">(0 Items)</span></h1>
+
+        <div class="flex flex-col lg:flex-row gap-10">
+            <div id="cartItemsList" class="w-full lg:w-2/3 space-y-4">
+                </div>
+
+            <div class="w-full lg:w-1/3">
+                <div class="bg-white p-8 rounded-3xl shadow-xl border border-gray-100 sticky top-28">
+                    <h2 class="text-xl font-black text-gray-900 mb-6">Order Summary</h2>
+                    
+                    <div class="space-y-4 text-gray-600 border-b pb-6">
+                        <div class="flex justify-between">
+                            <span>Subtotal</span>
+                            <span class="font-bold text-gray-900" id="subtotalDisplay">KSh 0</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Delivery (Nairobi)</span>
+                            <span class="font-bold text-green-600 uppercase text-sm italic">Free</span>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-center py-6">
+                        <span class="text-lg font-bold">Total Amount</span>
+                        <span class="text-2xl font-black text-red-600" id="totalDisplay">KSh 0</span>
+                    </div>
+
+                    <div class="space-y-3">
+                        <button onclick="showMpesa()" class="w-full bg-mpesa hover-mpesa text-white py-4 rounded-2xl font-black flex items-center justify-center space-x-3 transition-all transform active:scale-95 shadow-lg shadow-green-200">
+                            <span>Checkout with M-Pesa</span>
+                            <i class="fa-solid fa-mobile-screen"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="mpesaModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl w-full max-w-md p-8 text-center animate-bounce-short">
+            <h3 class="text-2xl font-black text-gray-900">Lipa na M-Pesa</h3>
+            <p class="text-gray-500 mt-2">Enter your number for the KSh <span id="modalTotal" class="text-mpesa font-bold">0</span> payment</p>
+            <div class="mt-6 text-left">
+                <div class="flex items-center border-2 border-gray-100 rounded-xl px-4 py-3 mt-1">
+                    <span class="font-bold text-gray-400 mr-2">+254</span>
+                    <input type="number" placeholder="712345678" class="w-full focus:outline-none font-bold tracking-widest">
+                </div>
+            </div>
+            <button id="mpesa-send" onclick="createOrderFromCart()" class="w-full mt-6 bg-mpesa text-white py-4 rounded-2xl font-black hover-mpesa transition">Confirm & Place Order</button>
+            <button onclick="closeMpesa()" class="mt-4 text-gray-400 font-bold text-sm hover:text-red-600">Cancel</button>
+        </div>
+    </div>
+
+    <script>
+        // 1. Load and Render Cart
+        function renderCart() {
+            const cartItems = JSON.parse(localStorage.getItem('cart')) || [];
+            const container = document.getElementById('cartItemsList');
+            const itemCountDisplay = document.getElementById('itemCountDisplay');
+            
+            if (cartItems.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-20 bg-white rounded-3xl border border-dashed border-gray-300">
+                        <i class="fa-solid fa-cart-shopping text-5xl text-gray-200 mb-4"></i>
+                        <p class="text-gray-500 font-bold">Your basket is empty</p>
+                        <a href="index.html" class="text-red-600 underline">Start shopping</a>
+                    </div>`;
+                itemCountDisplay.innerText = "(0 Items)";
+                updateTotals(0);
+                return;
+            }
+
+            itemCountDisplay.innerText = `(${cartItems.length} Items)`;
+            container.innerHTML = '';
+            let total = 0;
+
+            cartItems.forEach((item, index) => {
+                const itemTotal = item.price * (item.quantity || 1);
+                total += itemTotal;
+                container.innerHTML += `
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col md:flex-row items-center gap-6">
+                        <img src="${item.img || 'https://via.placeholder.com/100'}" class="w-24 h-24 object-cover rounded-xl" alt="Product">
+                        <div class="flex-1 text-center md:text-left">
+                            <h3 class="font-bold text-lg text-gray-900">${item.name}</h3>
+                            <p class="text-gray-500 text-sm italic">KSh ${item.price.toLocaleString()} each</p>
+                        </div>
+                        <div class="flex items-center gap-3 bg-gray-50 p-2 rounded-lg">
+                            <button onclick="updateQuantity(${index}, -1)" class="w-8 h-8 bg-red-600 text-white rounded font-bold">−</button>
+                            <span class="font-bold w-6 text-center">${item.quantity || 1}</span>
+                            <button onclick="updateQuantity(${index}, 1)" class="w-8 h-8 bg-green-600 text-white rounded font-bold">+</button>
+                        </div>
+                        <div class="text-right">
+                            <p class="font-black text-xl text-gray-900">KSh ${itemTotal.toLocaleString()}</p>
+                            <button onclick="removeItem(${index})" class="text-red-500 text-xs font-bold hover:underline">Remove</button>
+                        </div>
+                    </div>`;
+            });
+
+            updateTotals(total);
+        }
+
+        // 2. Update Summary Calculations
+        function updateTotals(total) {
+            document.getElementById('subtotalDisplay').innerText = `KSh ${total.toLocaleString()}`;
+            document.getElementById('totalDisplay').innerText = `KSh ${total.toLocaleString()}`;
+            document.getElementById('modalTotal').innerText = total.toLocaleString();
+        }
+
+        // 3. Update Quantity
+        function updateQuantity(index, change) {
+            let cartItems = JSON.parse(localStorage.getItem('cart')) || [];
+            if (cartItems[index]) {
+                cartItems[index].quantity = (cartItems[index].quantity || 1) + change;
+                if (cartItems[index].quantity < 1) {
+                    cartItems.splice(index, 1);
+                }
+                localStorage.setItem('cart', JSON.stringify(cartItems));
+                renderCart();
+                syncCartIfAuthenticated(cartItems);
+            }
+        }
+
+        // 4. Remove Item Logic
+        function removeItem(index) {
+            let cartItems = JSON.parse(localStorage.getItem('cart')) || [];
+            cartItems.splice(index, 1); // Remove item at that specific index
+            localStorage.setItem('cart', JSON.stringify(cartItems));
+            renderCart(); // Re-draw the UI
+            syncCartIfAuthenticated(cartItems);
+        }
+
+        // Modal Logic
+        function showMpesa() { document.getElementById('mpesaModal').classList.remove('hidden'); }
+        function closeMpesa() { document.getElementById('mpesaModal').classList.add('hidden'); }
+
+        // Create an order from current cart and save to localStorage 'orders'
+        async function createOrderFromCart() {
+            const cartItems = JSON.parse(localStorage.getItem('cart')) || [];
+            if (cartItems.length === 0) return alert('Your cart is empty');
+
+            const total = cartItems.reduce((s, it) => s + (it.price * (it.quantity || 1)), 0);
+
+            // If user is signed in (has token), send to backend
+            const token = localStorage.getItem('authToken');
+            if (token) {
+                try {
+                    const resp = await fetch('/api/orders/create', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                        body: JSON.stringify({ items: cartItems, totalAmount: total, paymentMethod: 'M-Pesa' })
+                    });
+
+                    if (resp.ok) {
+                        const serverOrder = await resp.json();
+                        // Optionally save server order locally for fast access
+                        const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+                        orders.unshift(serverOrder);
+                        localStorage.setItem('orders', JSON.stringify(orders));
+
+                        // clear cart and redirect
+                        localStorage.removeItem('cart');
+                        window.location.href = 'profile.html';
+                        return;
+                    } else {
+                        const err = await resp.json().catch(() => ({}));
+                        console.warn('Order save failed on server', err);
+                        // fallthrough to local save below
+                    }
+                } catch (e) {
+                    console.warn('Failed to send order to server', e);
+                    // continue to local save
+                }
+            }
+
+            // Fallback: save locally if not signed in or server failed
+            const order = {
+                id: 'MSK-' + Math.random().toString(36).substring(2,9).toUpperCase(),
+                items: cartItems,
+                totalAmount: total,
+                status: 'Pending',
+                paymentMethod: 'M-Pesa',
+                orderDate: new Date().toISOString()
+            };
+
+            const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+            orders.unshift(order);
+            localStorage.setItem('orders', JSON.stringify(orders));
+
+            // Clear cart
+            localStorage.removeItem('cart');
+
+            // Also try clearing server cart if authenticated
+            if (token) {
+                try { await fetch('/api/cart/clear', { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + token } }); } catch (e) { console.warn('Failed to clear server cart', e); }
+            }
+
+            // Redirect to profile/account page to see order
+            window.location.href = 'profile.html';
+        }
+
+        // Initial Load
+        window.onload = async function() {
+            // If authenticated, try to load server cart and merge/replace local cart
+            const token = localStorage.getItem('authToken');
+            if (token) {
+                try {
+                    const resp = await fetch('/api/cart', { headers: { 'Authorization': 'Bearer ' + token } });
+                    if (resp.ok) {
+                        const data = await resp.json();
+                        if (data && Array.isArray(data.products)) {
+                            // Replace local cart with server cart (keeps UI consistent)
+                            const transformed = data.products.map(p => ({ _id: p._id, name: p.name, price: p.price, img: p.img, quantity: p.quantity }));
+                            localStorage.setItem('cart', JSON.stringify(transformed));
+                        }
+                    }
+                } catch (e) { console.warn('Failed to fetch server cart', e); }
+            }
+            renderCart();
+        };
+
+        // Helper: sync local cart to server when user is authenticated
+        async function syncCartIfAuthenticated(cartItems) {
+            const token = localStorage.getItem('authToken');
+            if (!token) return;
+            try {
+                const payload = (cartItems || JSON.parse(localStorage.getItem('cart') || '[]')).map(i => ({ _id: i._id, quantity: i.quantity }));
+                await fetch('/api/cart', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify({ products: payload }) });
+            } catch (e) { console.warn('syncCart failed', e); }
+        }
+
+        // Logo Logic
+        const logo = document.getElementById('mainLogo');
+        if (logo) {
+            logo.addEventListener('mouseover', () => { logo.style.backgroundColor = '#000'; logo.innerText = 'Go'; });
+            logo.addEventListener('mouseout', () => { logo.style.backgroundColor = '#dc2626'; logo.innerText = 'MS'; });
+        }
+    </script>
+</body>
+</html>

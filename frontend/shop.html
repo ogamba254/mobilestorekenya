@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MobileStore Kenya | Official Shop</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        /* Your existing CSS remains the same */
+        :root { --primary-color: #2563eb; --dark-bg: #0f172a; --text-main: #334155; --card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+        body { font-family: 'Poppins', sans-serif; background-color: #f8fafc; margin: 0; color: var(--text-main); }
+        header { background-color: white; padding: 1rem 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 1000; }
+        header h1 { color: var(--primary-color); margin: 0; font-size: 1.5rem; text-transform: uppercase; letter-spacing: 1px; }
+        .container { max-width: 1200px; margin: 2rem auto; padding: 0 20px; }
+        .section-title { text-align: center; margin-bottom: 2.5rem; }
+        #shop-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
+        .product-card { background: white; border-radius: 15px; padding: 20px; text-align: center; transition: transform 0.3s ease, box-shadow 0.3s ease; box-shadow: var(--card-shadow); border: 1px solid #e2e8f0; }
+        .product-card:hover { transform: translateY(-8px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+        .product-card img { width: 100%; height: 200px; object-fit: contain; margin-bottom: 15px; border-radius: 10px; }
+        .product-card h3 { font-size: 1.2rem; margin: 10px 0; color: #1e293b; }
+        .product-card .price { font-size: 1.3rem; font-weight: 600; color: var(--primary-color); margin-bottom: 15px; }
+        .product-card button { background-color: var(--primary-color); color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-weight: 600; width: 100%; transition: background 0.3s; }
+        .product-card button:hover { background-color: #1d4ed8; }
+        .loader { text-align: center; padding: 50px; font-size: 1.2rem; color: #64748b; }
+        header { display: flex; gap: 20px; align-items: center; }
+        header > div:nth-child(2) { flex: 1; }
+        .search-item { padding: 12px 16px; border-bottom: 1px solid #e2e8f0; cursor: pointer; transition: background-color 0.2s; display: flex; align-items: center; gap: 12px; }
+        .search-item:hover { background-color: #f1f5f9; }
+        .search-item img { width: 40px; height: 40px; border-radius: 6px; object-fit: cover; }
+        .search-item-info { flex: 1; }
+        .search-item-name { font-weight: 600; color: #1e293b; font-size: 0.95rem; }
+        .search-item-price { color: #2563eb; font-weight: 700; font-size: 0.9rem; }
+        
+        /* Product Detail Modal */
+        #product-detail-modal {
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 2000;
+            align-items: center; justify-content: center; padding: 20px;
+        }
+        #product-detail-modal.active { display: flex; }
+        .modal-content {
+            background: white; border-radius: 20px; padding: 40px; max-width: 600px; width: 100%;
+            max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px rgba(0,0,0,0.2);
+        }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .modal-header h2 { margin: 0; }
+        .close-btn { background: none; border: none; font-size: 28px; cursor: pointer; color: #64748b; }
+        .product-image { width: 100%; height: 300px; object-fit: contain; border-radius: 15px; margin-bottom: 20px; }
+        .detail-item { margin: 15px 0; }
+        .detail-item label { font-weight: 600; color: #1e293b; display: block; margin-bottom: 5px; }
+        .detail-item input, .detail-item textarea {
+            width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px;
+            font-family: 'Poppins', sans-serif; font-size: 1rem;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1 onclick="window.location.href='index.html'" style="cursor:pointer;">MobileStore <span style="color: #334155;">Kenya</span></h1>
+        <div style="flex: 1; margin: 0 40px; position: relative;">
+            <input type="text" id="searchInput" placeholder="Search products..." oninput="handleSearch(this.value)" style="width: 100%; padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 1rem; outline: none; transition: border-color 0.3s;" onfocus="this.style.borderColor='#2563eb'" onblur="this.style.borderColor='#e2e8f0'">
+            <div id="search-results" style="position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 8px 8px; max-height: 400px; overflow-y: auto; display: none; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); z-index: 999;"></div>
+        </div>
+        <div style="display:flex; align-items:center; gap:12px;">
+            <div id="google-profile" style="display:none; align-items:center; gap:8px;">
+                <img id="google-avatar" src="" alt="avatar" style="width:32px; height:32px; border-radius:999px; object-fit:cover;">
+                <span id="google-name" style="font-weight:600; display:none;"></span>
+                <button id="google-logout" onclick="handleGoogleSignOut()" style="margin-left:8px; background:#dc2626; color:white; padding:6px 10px; border-radius:8px; border:none; display:none; font-weight:600;">Logout</button>
+            </div>
+            <div id="cart-status" onclick="window.location.href='cart.html'" style="cursor:pointer; font-weight:bold; padding: 8px 16px; background: #dc2626; color: white; border-radius: 8px;">🛒 Cart (<span id="cart-count">0</span>)</div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="section-title">
+            <h2>Explore Our Latest Devices</h2>
+            <p>Premium smartphones and laptops delivered to your doorstep.</p>
+        </div>
+
+        <div id="shop-container">
+            <div class="loader">Connecting to database...</div>
+        </div>
+    </div>
+
+    <!-- Product Detail Modal -->
+    <div id="product-detail-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Product Details</h2>
+                <button class="close-btn" onclick="closeProductModal()">&times;</button>
+            </div>
+            
+            <img id="modal-image" src="" class="product-image" alt="Product">
+            
+            <div class="detail-item">
+                <label>Product Name</label>
+                <input type="text" id="modal-name" readonly class="detail-input">
+            </div>
+            
+            <div class="detail-item">
+                <label>Category</label>
+                <input type="text" id="modal-category" readonly class="detail-input">
+            </div>
+            
+            <div class="detail-item">
+                <label>Price (KSh)</label>
+                <input type="number" id="modal-price" readonly class="detail-input">
+            </div>
+            
+            <div class="detail-item">
+                <label>Old Price (KSh)</label>
+                <input type="number" id="modal-oldprice" readonly class="detail-input">
+            </div>
+            
+            <div class="detail-item">
+                <label>Details</label>
+                <textarea id="modal-details" readonly rows="4" class="detail-input"></textarea>
+            </div>
+        </div>
+    </div>
+
+    <script src="shop.js"></script>
+</body>
+</html>

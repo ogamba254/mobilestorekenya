@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MobileStore Kenya | Official Tech Shop</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script>
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
+    <style>
+        @keyframes breathe {
+            0%, 100% { box-shadow: 0 0 5px rgba(220, 38, 38, 0.4); }
+            50% { box-shadow: 0 0 20px rgba(220, 38, 38, 0.8); }
+        }
+        .logo-box { animation: breathe 3s infinite ease-in-out; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .logo-box:hover { transform: rotate(-10deg) scale(1.1); cursor: pointer; }
+        html { scroll-behavior: smooth; }
+        
+        .dark body { background-color: #121212; color: #ffffff; }
+        .dark nav { background-color: #1f1f1f; border-bottom: 1px solid #333; }
+        .dark .bg-white { background-color: #1f1f1f !important; color: white; }
+        
+        .reveal { opacity: 0; transform: translateY(30px); transition: all 0.6s ease-out; }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+        
+        #toast {
+            visibility: hidden; min-width: 250px; background-color: #333; color: #fff;
+            text-align: center; border-radius: 12px; padding: 16px; position: fixed;
+            z-index: 1000; left: 50%; bottom: 30px; transform: translateX(-50%);
+        }
+        #toast.show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
+        @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 30px; opacity: 1;} }
+        @keyframes fadeout { from {bottom: 30px; opacity: 1;} to {bottom: 0; opacity: 0;} }
+
+        #product-modal {
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(8px); z-index: 2000; align-items: center; justify-content: center; padding: 20px;
+        }
+        #search-results { max-height: 400px; overflow-y: auto; display: none; }
+        .search-item:hover { background-color: rgba(220, 38, 38, 0.1); }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans transition-colors duration-300">
+
+    <div id="toast">Item added to cart! 🛒</div>
+
+    <div id="product-modal" onclick="closeModal(event)">
+        <div class="bg-white dark:bg-zinc-900 max-w-2xl w-full rounded-[2.5rem] overflow-hidden shadow-2xl transform transition-all" id="modal-content" onclick="event.stopPropagation()">
+            <div class="flex flex-col md:flex-row">
+                <div class="md:w-1/2 h-64 md:h-auto bg-gray-100 dark:bg-zinc-800">
+                    <img id="modal-img" src="" class="w-full h-full object-cover">
+                </div>
+                <div class="md:w-1/2 p-8 space-y-4">
+                    <div class="flex justify-between items-start">
+                        <h2 id="modal-name" class="text-2xl font-black dark:text-white uppercase"></h2>
+                        <button onclick="closeModal(null)" class="text-gray-400 hover:text-red-600 transition"><i class="fa-solid fa-xmark text-xl"></i></button>
+                    </div>
+                    <div class="flex items-baseline gap-3">
+                        <p id="modal-price" class="text-red-600 text-3xl font-black"></p>
+                        <p id="modal-old-price" class="text-gray-400 text-lg line-through hidden"></p>
+                    </div>
+                    <div class="space-y-2 py-4 border-y dark:border-zinc-800">
+                        <h4 class="text-xs uppercase font-bold text-gray-400 tracking-widest">Specifications</h4>
+                        <ul id="modal-specs" class="space-y-2 text-sm text-gray-600 dark:text-gray-300"></ul>
+                    </div>
+                    <button id="modal-add-btn" class="w-full bg-red-600 text-white py-4 rounded-2xl font-bold shadow-lg shadow-red-600/30 active:scale-95 transition uppercase tracking-widest">Add to Cart</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <nav class="bg-white shadow-md sticky top-0 z-50">
+        <div class="container mx-auto px-4 md:px-10 py-4 flex justify-between items-center">
+            <a href="index.html" class="flex items-center space-x-3">
+                <div id="mainLogo" class="logo-box bg-red-600 text-white p-2 rounded-lg font-bold text-2xl flex items-center justify-center w-12 h-12">MS</div>
+                <div class="flex flex-col leading-tight">
+                    <span class="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tighter">MobileStore</span>
+                    <span class="text-sm font-bold text-red-600 tracking-widest uppercase">Kenya</span>
+                </div>
+            </a>
+            
+            <div class="hidden lg:flex flex-1 mx-12 relative">
+                <div class="relative w-full">
+                    <input type="text" id="searchInput" oninput="handleSearch(this.value)" placeholder="Search products..." class="w-full border-2 border-gray-100 dark:border-zinc-700 bg-gray-100 dark:bg-zinc-800 rounded-full px-6 py-2 focus:bg-white focus:border-red-500 outline-none transition dark:text-white">
+                    <div id="search-results" class="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-zinc-900 shadow-2xl rounded-2xl border border-gray-100 dark:border-zinc-700 z-[100] p-2"></div>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-4 md:space-x-6 text-gray-800 dark:text-gray-200">
+                <div id="auth-area" class="hidden md:flex items-center gap-4">
+                    <a id="login-link" href="login.html" class="flex items-center gap-2 bg-gray-100 dark:bg-zinc-800 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-red-600 hover:text-white transition group">
+                        <i class="fa-solid fa-right-to-bracket text-red-600 group-hover:text-white"></i> Login
+                    </a>
+
+                    <div id="google-profile" class="hidden items-center gap-2">
+                        <img id="google-avatar" src="" alt="avatar" class="w-8 h-8 rounded-full object-cover">
+                        <span id="google-name" class="hidden md:inline text-sm font-semibold"></span>
+                        <button id="google-logout" onclick="handleGoogleSignOut()" class="ml-2 bg-red-600 text-white px-3 py-1 rounded text-xs hidden">Logout</button>
+                    </div>
+
+                    <div id="loggedin-profile" class="hidden items-center gap-3">
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-full bg-red-600 text-white flex items-center justify-center font-bold text-sm" id="user-initials">U</div>
+                            <span id="user-fullname" class="hidden md:inline text-sm font-semibold"></span>
+                        </div>
+                        <button id="logout-btn" onclick="handleUserLogout()" class="ml-2 bg-red-600 text-white px-3 py-1 rounded text-xs font-bold">Logout</button>
+                    </div>
+                </div>
+
+                <a href="cart.html" class="hover:text-red-600 relative p-2 transition">
+                    <i class="fa-solid fa-cart-shopping text-xl"></i>
+                    <span id="cartCount" class="absolute top-0 right-0 bg-red-600 text-white text-[10px] font-bold rounded-full h-5 w-5 flex items-center justify-center border-2 border-white">0</span>
+                </a>
+
+                <div class="relative group">
+                    <button class="p-2 outline-none hover:text-red-600 transition">
+                        <i class="fa-solid fa-gear text-xl"></i>
+                    </button>
+                    <div class="absolute right-0 mt-2 w-48 bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-700 rounded-2xl shadow-xl py-2 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-200 z-50">
+                        <a href="profile.html" class="w-full flex items-center px-4 py-3 text-sm hover:bg-gray-50 dark:hover:bg-zinc-800 transition border-b dark:border-zinc-800">
+                            <i class="fa-regular fa-circle-user mr-3 text-red-600"></i> My Account
+                        </a>
+                        <button onclick="setTheme('light')" class="w-full flex items-center px-4 py-3 text-sm hover:bg-gray-50 dark:hover:bg-zinc-800 transition text-left">
+                            <i class="fa-regular fa-sun mr-3 text-orange-500"></i> Light Mode
+                        </button>
+                        <button onclick="setTheme('dark')" class="w-full flex items-center px-4 py-3 text-sm hover:bg-gray-50 dark:hover:bg-zinc-800 transition text-left">
+                            <i class="fa-regular fa-moon mr-3 text-indigo-500"></i> Dark Mode
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <header class="bg-zinc-900 text-white py-24 px-6 relative">
+        <div class="container mx-auto flex flex-col md:flex-row items-center justify-between">
+            <div class="md:w-1/2 space-y-6 reveal active">
+                <h1 class="text-5xl md:text-7xl font-black leading-tight tracking-tighter">The Future of <br><span class="text-red-600 italic">Kenya's Tech.</span></h1>
+                <p class="text-gray-400 text-lg max-w-lg">Genuine smartphones, laptops, and smart TVs with official local warranties.</p>
+                <a href="shop.html" class="inline-block bg-red-600 px-8 py-4 rounded-2xl font-black transition active:scale-95 uppercase tracking-widest">Explore Shop</a>
+            </div>
+            <div class="md:w-1/2 mt-16 md:mt-0 relative flex justify-center reveal active">
+                <div class="absolute inset-0 bg-red-600/20 blur-[100px] rounded-full"></div>
+                <img src="https://images.unsplash.com/photo-1592890288564-76628a30a657?auto=format&fit=crop&q=80&w=800" class="relative z-10 w-full max-w-md rounded-[3rem] shadow-2xl rotate-3" alt="Tech Showcase">
+            </div>
+        </div>
+    </header>
+
+    <main id="shop" class="container mx-auto px-6 py-20 space-y-24">
+        <section>
+            <h2 class="text-4xl font-black mb-10 border-l-8 border-red-600 pl-4 dark:text-white uppercase tracking-tighter">Smartphones</h2>
+            <div id="phone-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"></div>
+        </section>
+        <section>
+            <h2 class="text-4xl font-black mb-10 border-l-8 border-blue-600 pl-4 dark:text-white uppercase tracking-tighter">Laptops & Others</h2>
+            <div id="laptop-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"></div>
+        </section>
+    </main>
+
+    <footer class="bg-zinc-900 text-white border-t dark:border-zinc-800 pt-20 pb-10">
+        <div class="container mx-auto px-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
+                <div class="space-y-6">
+                    <div class="flex items-center space-x-3">
+                        <div class="bg-red-600 text-white p-2 rounded-lg font-bold text-xl flex items-center justify-center w-10 h-10">MS</div>
+                        <span class="text-xl font-black dark:text-white uppercase tracking-tighter">MobileStore</span>
+                    </div>
+                    <p class="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
+                        Kenya's leading tech destination for genuine smartphones and laptops. Quality guaranteed with official local warranties.
+                    </p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="w-10 h-10 rounded-full bg-gray-100 dark:bg-zinc-800 flex items-center justify-center hover:bg-red-600 hover:text-white transition"><i class="fa-brands fa-facebook-f"></i></a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-gray-100 dark:bg-zinc-800 flex items-center justify-center hover:bg-red-600 hover:text-white transition"><i class="fa-brands fa-instagram"></i></a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-gray-100 dark:bg-zinc-800 flex items-center justify-center hover:bg-red-600 hover:text-white transition"><i class="fa-brands fa-x-twitter"></i></a>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="font-black dark:text-white uppercase tracking-widest text-sm mb-6">Quick Links</h4>
+                    <ul class="space-y-4 text-gray-500 dark:text-gray-400 text-sm">
+                        <li><a href="shop.html" class="hover:text-red-600 transition">All Products</a></li>
+                        <li><a href="#" class="hover:text-red-600 transition">Smartphones</a></li>
+                        <li><a href="#" class="hover:text-red-600 transition">Laptops</a></li>
+                        <li><a href="cart.html" class="hover:text-red-600 transition">View Cart</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="font-black dark:text-white uppercase tracking-widest text-sm mb-6">Support</h4>
+                    <ul class="space-y-4 text-gray-500 dark:text-gray-400 text-sm">
+                        <li class="flex items-start gap-3">
+                            <i class="fa-solid fa-location-dot mt-1 text-red-600"></i>
+                            <span>Nairobi CBD, Kimathi Street<br>Kenya</span>
+                        </li>
+                        <li class="flex items-center gap-3">
+                            <i class="fa-solid fa-phone text-red-600"></i>
+                            <span>+254 700 000 000</span>
+                        </li>
+                        <li class="flex items-center gap-3">
+                            <i class="fa-solid fa-envelope text-red-600"></i>
+                            <span>support@mobilestore.ke</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="font-black dark:text-white uppercase tracking-widest text-sm mb-6">Newsletter</h4>
+                    <p class="text-gray-500 dark:text-gray-400 text-sm mb-4">Get updates on latest tech arrivals.</p>
+                    <div class="relative">
+                        <input type="email" placeholder="Email Address" class="w-full bg-gray-100 dark:bg-zinc-800 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-red-600 transition outline-none dark:text-white">
+                        <button class="absolute right-2 top-1/2 -translate-y-1/2 bg-red-600 text-white p-2 rounded-lg hover:bg-red-700 transition">
+                            <i class="fa-solid fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-t dark:border-zinc-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-gray-400 text-[10px] font-bold uppercase tracking-widest">
+                <p>© 2026 MobileStore Kenya. All Rights Reserved.</p>
+                <div class="flex gap-6">
+                    <a href="#" class="hover:text-red-600 transition">Privacy Policy</a>
+                    <a href="#" class="hover:text-red-600 transition">Terms of Service</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const API_URL = "http://localhost:5000/api/products";
+        const CART_API_URL = "http://localhost:5000/api/cart/add";
+        let allProducts = [];
+
+        async function generateProducts() {
+            const phoneGrid = document.getElementById('phone-container');
+            const laptopGrid = document.getElementById('laptop-container');
+            
+            try {
+                const response = await fetch('http://localhost:5000/api/products');
+                if (!response.ok) throw new Error("Backend connection failed");
+                
+                const dbProducts = await response.json();
+                allProducts = dbProducts;
+
+                phoneGrid.innerHTML = '';
+                laptopGrid.innerHTML = '';
+
+                dbProducts.forEach(item => {
+                    let specsArray = Array.isArray(item.specs) ? item.specs : ["Genuine Product", "Official Warranty"];
+                    if (typeof item.specs === 'string') specsArray = item.specs.split('|');
+                    if (Array.isArray(item.details)) specsArray = item.details;
+
+                    const img = item.img || item.images?.[0] || 'https://via.placeholder.com/400';
+                    const cardHTML = createCard(item.name, item.price, img, specsArray, item.oldPrice, item._id);
+                    
+                    if (item.category === "Smartphone") {
+                        phoneGrid.innerHTML += cardHTML;
+                    } else {
+                        laptopGrid.innerHTML += cardHTML;
+                    }
+                });
+
+                if (dbProducts.length === 0) {
+                    phoneGrid.innerHTML = `<p class="col-span-full text-center text-gray-400 py-10 font-bold uppercase">No products found in database.</p>`;
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                phoneGrid.innerHTML = `<p class="col-span-full text-center text-red-600 font-bold uppercase">Server Offline: Check your Node.js backend.</p>`;
+            }
+            initObserver();
+        }
+
+        function createCard(name, price, img, specs, oldPrice, id) {
+            const cleanName = name.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+            const specsStr = specs.join('|').replace(/'/g, "\\'");
+            
+            return `
+            <div class="reveal bg-white dark:bg-zinc-800 p-4 rounded-3xl border dark:border-zinc-700 cursor-pointer group" 
+                 onclick="openModal('${cleanName}', ${price}, '${img}', '${specsStr}', ${oldPrice || 'null'}, '${id}')">
+                <div class="relative overflow-hidden rounded-2xl mb-4">
+                    <img src="${img || 'https://via.placeholder.com/400'}" class="w-full h-48 object-cover group-hover:scale-110 transition duration-500">
+                    ${oldPrice ? `<span class="absolute top-3 left-3 bg-red-600 text-white text-[10px] px-2 py-1 rounded-full font-black uppercase">Sale</span>` : ''}
+                </div>
+                <h3 class="font-bold text-sm truncate dark:text-white uppercase tracking-tight">${name}</h3>
+                <div class="flex items-center gap-2 mt-2">
+                    <p class="text-red-600 font-black">KSh ${price.toLocaleString()}</p>
+                    ${oldPrice ? `<p class="text-gray-400 text-xs line-through italic">KSh ${oldPrice.toLocaleString()}</p>` : ''}
+                </div>
+                <button class="w-full mt-4 bg-gray-100 dark:bg-zinc-700 dark:text-white py-2 rounded-xl text-xs font-bold group-hover:bg-red-600 group-hover:text-white transition uppercase">View Details</button>
+            </div>`;
+        }
+
+        function openModal(name, price, img, specsString, oldPrice, id) {
+            const modal = document.getElementById('product-modal');
+            const specs = specsString.split('|');
+            
+            document.getElementById('modal-name').innerText = name;
+            document.getElementById('modal-price').innerText = `KSh ${Number(price).toLocaleString()}`;
+            
+            const oldPriceEl = document.getElementById('modal-old-price');
+            if(oldPrice && oldPrice !== "null") {
+                oldPriceEl.innerText = `KSh ${Number(oldPrice).toLocaleString()}`;
+                oldPriceEl.classList.remove('hidden');
+            } else {
+                oldPriceEl.classList.add('hidden');
+            }
+
+            document.getElementById('modal-img').src = img || 'https://via.placeholder.com/400';
+            document.getElementById('modal-specs').innerHTML = specs.map(s => `<li>• ${s}</li>`).join('');
+            
+            document.getElementById('modal-add-btn').onclick = () => { 
+                addToCart(id); 
+                closeModal(); 
+            };
+            
+            modal.style.display = 'flex';
+        }
+
+        function closeModal() { document.getElementById('product-modal').style.display = 'none'; }
+
+        async function addToCart(productId) {
+            const userId = "65b8f1e2c3d4e5f6a7b8c9d0"; 
+            try {
+                const response = await fetch(CART_API_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ userId, productId, quantity: 1 })
+                });
+
+                // Regardless of backend result, also keep a local cart for immediate UI updates
+                try {
+                    // find product info from loaded products
+                    const prod = allProducts.find(p => p._id === productId) || {};
+                    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+                    const existing = cart.find(i => i._id === productId);
+                    if (existing) {
+                        existing.quantity = (existing.quantity || 1) + 1;
+                    } else {
+                        cart.push({ _id: productId, name: prod.name || prod.title || 'Item', price: prod.price || 0, img: prod.img || (prod.images && prod.images[0]) || '' , quantity: 1 });
+                    }
+                    localStorage.setItem('cart', JSON.stringify(cart));
+                } catch (e) { console.warn('local cart update failed', e); }
+
+                if (response.ok) {
+                    showToast();
+                } else {
+                    // still show toast because local cart updated
+                    showToast();
+                }
+
+                // update badge from local cart (fast)
+                updateCartCount();
+            } catch (error) {
+                console.error("Cart Error:", error);
+            }
+        }
+
+        async function updateCartCount() {
+            // Prefer reading client-side localStorage cart for immediate UI updates
+            try {
+                const localCart = JSON.parse(localStorage.getItem('cart') || '[]');
+                const countEl = document.getElementById('cartCount');
+                if (localCart && localCart.length > 0) {
+                    const total = localCart.reduce((acc, item) => acc + (item.quantity || 1), 0);
+                    if (countEl) countEl.innerText = total;
+                    return;
+                }
+
+                // Fallback to backend cart if no local cart available
+                const userId = "65b8f1e2c3d4e5f6a7b8c9d0";
+                const response = await fetch(`http://localhost:5000/api/cart/${userId}`);
+                if (response.ok) {
+                    const cart = await response.json();
+                    const total = (cart.products || []).reduce((acc, item) => acc + (item.quantity || 0), 0);
+                    if (countEl) countEl.innerText = total;
+                } else if (countEl) {
+                    countEl.innerText = '0';
+                }
+            } catch (e) { console.log("Cart count update failed", e); }
+        }
+
+        function handleSearch(query) {
+            const resultsBox = document.getElementById('search-results');
+            if (!query.trim()) { resultsBox.style.display = 'none'; return; }
+            const filtered = allProducts.filter(p => p.name.toLowerCase().includes(query.toLowerCase()) || p.category.toLowerCase().includes(query.toLowerCase())).slice(0, 8);
+            resultsBox.style.display = filtered.length > 0 ? 'block' : 'none';
+            resultsBox.innerHTML = filtered.map(p => {
+                const img = p.img || p.images?.[0] || 'https://via.placeholder.com/40';
+                const specs = (p.details && Array.isArray(p.details)) ? p.details.join('|') : (p.specs ? (Array.isArray(p.specs) ? p.specs.join('|') : p.specs) : '');
+                return `
+                <div onclick="openModal('${p.name.replace(/'/g, "\\'")}', ${p.price}, '${img}', '${specs}', ${p.oldPrice || 'null'}, '${p._id}')" class="search-item flex items-center p-3 cursor-pointer gap-4">
+                    <img src="${img}" class="w-10 h-10 rounded object-cover">
+                    <div class="flex-1">
+                        <h4 class="text-sm font-bold dark:text-white uppercase">${p.name}</h4>
+                        <p class="text-red-600 text-xs font-black">KSh ${p.price.toLocaleString()}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function setTheme(theme) {
+            theme === 'dark' ? document.documentElement.classList.add('dark') : document.documentElement.classList.remove('dark');
+            localStorage.setItem('theme', theme);
+        }
+
+        function initObserver() {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('active'); });
+            }, { threshold: 0.1 });
+            document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+        }
+
+        function showToast() { 
+            const t = document.getElementById("toast"); t.className = "show"; 
+            setTimeout(() => t.className = "", 3000); 
+        }
+
+        function initGoogleUI() {
+            const g = localStorage.getItem('googleUser');
+            const u = localStorage.getItem('loggedInUser');
+            const token = localStorage.getItem('authToken');
+            const loginLink = document.getElementById('login-link');
+            const gp = document.getElementById('google-profile');
+            const lp = document.getElementById('loggedin-profile');
+            const avatar = document.getElementById('google-avatar');
+            const nameEl = document.getElementById('google-name');
+            const logoutBtn = document.getElementById('google-logout');
+            
+            // Show regular logged-in user profile
+            if (u && token && !g) {
+                try {
+                    const user = JSON.parse(u);
+                    const fullName = (user.firstName + ' ' + user.lastName).trim() || user.email;
+                    const initials = (user.firstName ? user.firstName[0] : '') + (user.lastName ? user.lastName[0] : '');
+                    document.getElementById('user-fullname').textContent = fullName;
+                    document.getElementById('user-initials').textContent = initials.toUpperCase() || 'U';
+                    lp.classList.remove('hidden');
+                    gp.classList.add('hidden');
+                    loginLink.classList.add('hidden');
+                } catch (e) { console.error('Invalid loggedInUser', e); }
+            }
+            // Show Google profile
+            else if (g) {
+                try {
+                    const obj = JSON.parse(g);
+                    avatar.src = obj.imageUrl || obj.picture || obj.photo || '';
+                    nameEl.textContent = obj.name || obj.email || '';
+                    gp.classList.remove('hidden');
+                    lp.classList.add('hidden');
+                    loginLink.classList.add('hidden');
+                    logoutBtn.classList.remove('hidden');
+                    nameEl.classList.remove('hidden');
+                } catch (e) { console.error('Invalid googleUser', e); }
+            } else {
+                gp.classList.add('hidden');
+                lp.classList.add('hidden');
+                loginLink.classList.remove('hidden');
+            }
+        }
+        
+        function handleUserLogout() {
+            localStorage.removeItem('loggedInUser');
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('userRole');
+            window.location.href = 'index.html';
+        }
+
+        function handleGoogleSignOut() {
+            localStorage.removeItem('googleUser');
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('userRole');
+            // redirect to homepage after signout
+            window.location.href = 'index.html';
+        }
+
+        window.onload = () => {
+            generateProducts();
+            updateCartCount();
+            initGoogleUI();
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Account | MobileStore Kenya</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @keyframes breathe {
+            0%, 100% { box-shadow: 0 0 5px rgba(220, 38, 38, 0.4); }
+            50% { box-shadow: 0 0 20px rgba(220, 38, 38, 0.8); }
+        }
+        .logo-box { animation: breathe 3s infinite ease-in-out; transition: transform 0.3s ease; }
+        .logo-box:hover { transform: rotate(-10deg) scale(1.1); cursor: pointer; }
+        .sidebar-link:hover { background-color: #fef2f2; border-left: 4px solid #dc2626; color: #dc2626; }
+        .active-link { background-color: #fef2f2; border-left: 4px solid #dc2626; color: #dc2626; }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans">
+
+    <nav class="bg-white shadow-md sticky top-0 z-50">
+        <div class="container mx-auto px-4 md:px-10 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-3" onclick="window.location.href='index.html'">
+                <div id="mainLogo" class="logo-box bg-red-600 text-white p-2 rounded-lg font-bold text-2xl flex items-center justify-center w-12 h-12">MS</div>
+                <div class="flex flex-col leading-tight">
+                    <span class="text-xl font-black text-gray-900 tracking-tighter uppercase">MobileStore</span>
+                    <span class="text-sm font-bold text-red-600 tracking-widest uppercase">Kenya</span>
+                </div>
+            </div>
+            <div class="flex items-center space-x-6 text-gray-800">
+                <a href="#" class="hover:text-red-600 relative"><i class="fa-solid fa-cart-shopping text-xl"></i></a>
+                <button id="profile-logout" onclick="handleGoogleSignOut()" class="bg-zinc-900 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-red-600 transition">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-4 md:px-10 py-10">
+        <div class="flex flex-col lg:flex-row gap-8">
+            
+            <aside class="w-full lg:w-1/4 bg-white rounded-2xl shadow-sm p-6 h-fit border border-gray-100">
+                <div class="flex items-center space-x-4 mb-8">
+                    <div id="profile-avatar-wrap" class="w-16 h-16 rounded-full overflow-hidden">
+                        <img id="profile-avatar" src="" alt="avatar" class="w-full h-full object-cover hidden">
+                        <div id="profile-initials" class="w-full h-full bg-red-100 flex items-center justify-center text-red-600 text-2xl font-bold">U</div>
+                    </div>
+                    <div>
+                        <h2 id="profile-fullname" class="font-bold text-gray-900 text-lg">User</h2>
+                        <p id="profile-membersince" class="text-xs text-gray-500">Member since <span id="member-year">2024</span></p>
+                    </div>
+                </div>
+                
+                <nav class="space-y-1">
+                    <a href="#" class="sidebar-link active-link flex items-center space-x-3 p-3 rounded-lg transition font-semibold">
+                        <i class="fa-solid fa-gauge-high w-5"></i> <span>Dashboard</span>
+                    </a>
+                    <a href="#" class="sidebar-link flex items-center space-x-3 p-3 rounded-lg text-gray-600 transition font-semibold">
+                        <i class="fa-solid fa-box w-5"></i> <span>My Orders</span>
+                    </a>
+                    <a href="#" class="sidebar-link flex items-center space-x-3 p-3 rounded-lg text-gray-600 transition font-semibold">
+                        <i class="fa-solid fa-heart w-5"></i> <span>Wishlist</span>
+                    </a>
+                    <a href="#" class="sidebar-link flex items-center space-x-3 p-3 rounded-lg text-gray-600 transition font-semibold">
+                        <i class="fa-solid fa-gear w-5"></i> <span>Settings</span>
+                    </a>
+                </nav>
+            </aside>
+
+            <main class="w-full lg:w-3/4 space-y-8">
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 border-b-4 border-b-red-600">
+                        <p class="text-gray-500 text-sm font-medium uppercase tracking-wider">Total Spent</p>
+                        <h3 id="total-spent" class="text-2xl font-black mt-1">KSh 0</h3>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 border-b-4 border-b-zinc-900">
+                        <p class="text-gray-500 text-sm font-medium uppercase tracking-wider">Active Orders</p>
+                        <h3 id="active-orders" class="text-2xl font-black mt-1">0</h3>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 border-b-4 border-b-green-500">
+                        <p class="text-gray-500 text-sm font-medium uppercase tracking-wider">MS Loyalty Points</p>
+                        <h3 id="loyalty-points" class="text-2xl font-black mt-1 text-green-600">0 pts</h3>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="p-6 border-b border-gray-100 flex justify-between items-center">
+                        <h3 class="font-bold text-lg text-gray-900">Recent Transactions</h3>
+                        <button class="text-red-600 text-sm font-bold hover:underline">View All</button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-gray-50 text-gray-500 text-xs uppercase">
+                                <tr>
+                                    <th class="px-6 py-4">Order ID</th>
+                                    <th class="px-6 py-4">Product</th>
+                                    <th class="px-6 py-4">Date</th>
+                                    <th class="px-6 py-4">Status</th>
+                                    <th class="px-6 py-4">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody id="orders-tbody" class="divide-y divide-gray-100">
+                                <!-- Orders will be injected here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="bg-zinc-900 rounded-3xl p-8 text-white">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-xl font-bold">Primary Delivery Address</h3>
+                        <button class="text-sm bg-red-600 px-4 py-2 rounded-lg font-bold">Edit Address</button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-white/10 p-4 rounded-xl">
+                            <p class="text-gray-400 text-xs uppercase font-bold mb-1">Building/Street</p>
+                            <p>Kimathi House, Suite 402</p>
+                        </div>
+                        <div class="bg-white/10 p-4 rounded-xl">
+                            <p class="text-gray-400 text-xs uppercase font-bold mb-1">City/County</p>
+                            <p>Nairobi, CBD</p>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <script>
+        const logo = document.getElementById('mainLogo');
+        logo.addEventListener('mouseover', () => { logo.style.backgroundColor = '#000'; logo.innerText = 'Go'; });
+        logo.addEventListener('mouseout', () => { logo.style.backgroundColor = '#dc2626'; logo.innerText = 'MS'; });
+        
+        function initGoogleUI() {
+            const g = localStorage.getItem('googleUser');
+            if (!g) return;
+            try {
+                const obj = JSON.parse(g);
+                const avatar = document.getElementById('profile-avatar');
+                const initials = document.getElementById('profile-initials');
+                const nameEl = document.getElementById('profile-fullname');
+                const name = obj.name || obj.email || '';
+                if (avatar) { avatar.src = obj.imageUrl || obj.picture || obj.photo || ''; avatar.classList.remove('hidden'); }
+                if (initials) initials.classList.add('hidden');
+                if (nameEl) nameEl.textContent = name;
+            } catch (e) { console.error('Invalid googleUser', e); }
+        }
+
+        function handleGoogleSignOut() {
+            localStorage.removeItem('googleUser');
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('userRole');
+            window.location.href = 'index.html';
+        }
+
+        // Orders & stats rendering
+        async function renderOrders() {
+            let orders = [];
+            const token = localStorage.getItem('authToken');
+            if (token) {
+                try {
+                    const resp = await fetch('/api/orders/my-orders', { headers: { 'Authorization': 'Bearer ' + token } });
+                    if (resp.ok) {
+                        orders = await resp.json();
+                    } else {
+                        console.warn('Failed to fetch server orders, falling back to local');
+                        orders = JSON.parse(localStorage.getItem('orders') || '[]');
+                    }
+                } catch (e) {
+                    console.warn('Fetch orders error, using local orders', e);
+                    orders = JSON.parse(localStorage.getItem('orders') || '[]');
+                }
+            } else {
+                orders = JSON.parse(localStorage.getItem('orders') || '[]');
+            }
+            const tbody = document.getElementById('orders-tbody');
+            const totalSpentEl = document.getElementById('total-spent');
+            const activeOrdersEl = document.getElementById('active-orders');
+            const loyaltyEl = document.getElementById('loyalty-points');
+
+            let totalSpent = 0;
+            let activeCount = 0;
+
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            orders.forEach(o => {
+                const amt = Number(o.totalAmount || o.total || 0);
+                totalSpent += amt;
+                const status = o.status || 'Pending';
+                if (status && !['DELIVERED','Delivered','delivered','SHIPPED','Shipped','shipped'].includes(status)) activeCount++;
+
+                const firstProduct = o.items && o.items[0] ? (o.items[0].name || o.items[0].title || o.items[0].product || 'Item') : 'Item';
+                const date = new Date(o.orderDate || o.createdAt || Date.now()).toLocaleDateString();
+                const displayId = o._id || o.id || o.id;
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="px-6 py-4 font-mono text-sm">${displayId}</td>
+                        <td class="px-6 py-4 font-semibold">${firstProduct}</td>
+                        <td class="px-6 py-4 text-gray-500">${date}</td>
+                        <td class="px-6 py-4"><span class="px-3 py-1 rounded-full text-[10px] font-bold ${status.toLowerCase().includes('deliv') ? 'bg-green-100 text-green-700' : status.toLowerCase().includes('ship') ? 'bg-blue-100 text-blue-700' : 'bg-yellow-100 text-yellow-800'}">${status}</span></td>
+                        <td class="px-6 py-4 font-bold">KSh ${amt.toLocaleString()}</td>
+                    </tr>`;
+            });
+
+            totalSpentEl.innerText = `KSh ${totalSpent.toLocaleString()}`;
+            activeOrdersEl.innerText = `${activeCount}`;
+            // simple loyalty: 1 point per 100 KSh
+            loyaltyEl.innerText = `${Math.floor(totalSpent/100)} pts`;
+        }
+
+        // Load logged-in user details
+        function initUserProfile() {
+            const u = localStorage.getItem('loggedInUser');
+            const g = localStorage.getItem('googleUser');
+            
+            if (u) {
+                try {
+                    const user = JSON.parse(u);
+                    const fullName = (user.firstName + ' ' + user.lastName).trim();
+                    const initials = (user.firstName ? user.firstName[0] : '') + (user.lastName ? user.lastName[0] : '');
+                    document.getElementById('profile-fullname').textContent = fullName;
+                    document.getElementById('profile-initials').textContent = initials.toUpperCase() || 'U';
+                    document.getElementById('member-year').textContent = new Date().getFullYear();
+                } catch (e) { console.error('Invalid loggedInUser', e); }
+            } else if (g) {
+                try {
+                    const guser = JSON.parse(g);
+                    document.getElementById('profile-fullname').textContent = guser.name || guser.email;
+                    if (guser.imageUrl) {
+                        document.getElementById('profile-avatar').src = guser.imageUrl;
+                        document.getElementById('profile-avatar').classList.remove('hidden');
+                        document.getElementById('profile-initials').classList.add('hidden');
+                    }
+                } catch (e) { console.error('Invalid googleUser', e); }
+            }
+        }
+        
+        // initialize on load
+        document.addEventListener('DOMContentLoaded', () => { initUserProfile(); initGoogleUI(); renderOrders(); });
+    </script>
+</body>
+</html>
