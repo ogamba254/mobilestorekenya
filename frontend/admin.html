@@ -148,7 +148,7 @@
     </div>
 
     <script>
-        const API_URL = 'http://localhost:5000/api/products';
+        const API_URL = 'https://mobilestorekenya.onrender.com/api/products';
         let inventory = [];
         let filteredInventory = [];
         let editingProductId = null;
@@ -268,7 +268,7 @@
                 }
             } catch (error) {
                 console.error('Full Error:', error);
-                alert('Error: ' + error.message + '\n\nMake sure backend is running on http://localhost:5000');
+                alert('Error: ' + error.message + '\n\nMake sure backend is running or that API is reachable at https://mobilestorekenya.onrender.com');
             }
         }
 
@@ -407,7 +407,7 @@
             if (!token) return;
 
             try {
-                const resp = await fetch('http://localhost:5000/api/orders/all', { headers: { 'Authorization': 'Bearer ' + token } });
+                const resp = await fetch('https://mobilestorekenya.onrender.com/api/orders/all', { headers: { 'Authorization': 'Bearer ' + token } });
                 if (!resp.ok) throw new Error('Failed to fetch orders');
                 const orders = await resp.json();
                 renderOrdersTable(orders);

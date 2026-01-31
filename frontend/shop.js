@@ -1,7 +1,7 @@
 // shop.js
 
 // 1. Point this to your actual Backend URL
-const API_URL = "http://localhost:5000/api/products";
+const API_URL = "https://mobilestorekenya.onrender.com/api/products";
 
 let allProducts = [];
 let currentProduct = null;
@@ -17,10 +17,10 @@ async function loadProducts() {
         displayProducts(allProducts);
     } catch (error) {
         console.error("Error loading products:", error);
-        document.getElementById('shop-container').innerHTML = `
+                document.getElementById('shop-container').innerHTML = `
             <div style="text-align:center; width:100%; color:red;">
                 <h3>Server Offline</h3>
-                <p>Make sure your Node.js backend is running on port 5000.</p>
+                <p>Make sure your backend is reachable at https://mobilestorekenya.onrender.com.</p>
             </div>`;
     }
 }

@@ -46,7 +46,7 @@
     </div>
 
     <script>
-        const API_URL = 'http://localhost:5000/api/auth/register';
+        const API_URL = 'https://mobilestorekenya.onrender.com/api/auth/register';
 
         function toggleRegPasswordVisibility() {
             const passwordInput = document.getElementById('regPassword');
@@ -100,7 +100,7 @@
                 }
             } catch (error) {
                 console.error('Error:', error);
-                alert('Connection error. Make sure the backend is running on port 5000.');
+                alert('Connection error. Make sure the backend is reachable at https://mobilestorekenya.onrender.com');
             }
         }
     </script>
