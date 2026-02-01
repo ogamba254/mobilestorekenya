@@ -29,7 +29,6 @@
         .reveal { opacity: 0; transform: translateY(30px); transition: all 0.6s ease-out; }
         .reveal.active { opacity: 1; transform: translateY(0); }
 
-        /* Header Image Hover Effect Fixed */
         .hero-img { transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
         .hero-img:hover { transform: rotate(0deg) scale(1.05); cursor: pointer; }
         
@@ -46,7 +45,7 @@
             display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85);
             backdrop-filter: blur(8px); z-index: 5000; align-items: center; justify-content: center; padding: 20px;
         }
-        #search-results { max-height: 400px; overflow-y: auto; display: none; z-index: 6000; }
+        #search-results, #mobile-search-results { max-height: 400px; overflow-y: auto; display: none; z-index: 6000; }
         .search-item:hover { background-color: rgba(220, 38, 38, 0.1); }
     </style>
 </head>
@@ -80,41 +79,52 @@
     </div>
 
     <nav class="bg-white shadow-md sticky top-0 z-50">
-        <div class="container mx-auto px-4 md:px-10 py-4 flex justify-between items-center">
-            <a href="index.html" class="flex items-center space-x-3">
-                <div id="mainLogo" class="logo-box bg-red-600 text-white p-2 rounded-lg font-bold text-2xl flex items-center justify-center w-12 h-12">MS</div>
-                <div class="flex flex-col leading-tight">
-                    <span class="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tighter">MobileStore</span>
-                    <span class="text-sm font-bold text-red-600 tracking-widest uppercase">Kenya</span>
+        <div class="container mx-auto px-4 md:px-10 py-4">
+            <div class="flex justify-between items-center">
+                <a href="index.html" class="flex items-center space-x-3">
+                    <div id="mainLogo" class="logo-box bg-red-600 text-white p-2 rounded-lg font-bold text-2xl flex items-center justify-center w-12 h-12">MS</div>
+                    <div class="flex flex-col leading-tight">
+                        <span class="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tighter">MobileStore</span>
+                        <span class="text-sm font-bold text-red-600 tracking-widest uppercase">Kenya</span>
+                    </div>
+                </a>
+                
+                <div class="hidden lg:flex flex-1 mx-12 relative">
+                    <div class="relative w-full">
+                        <input type="text" id="searchInput" oninput="handleSearch(this.value, 'search-results')" placeholder="Search products..." class="w-full border-2 border-gray-100 dark:border-zinc-700 bg-gray-100 dark:bg-zinc-800 rounded-full px-6 py-2 focus:bg-white focus:border-red-500 outline-none transition dark:text-white">
+                        <div id="search-results" class="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-zinc-900 shadow-2xl rounded-2xl border border-gray-100 dark:border-zinc-700 z-[100] p-2"></div>
+                    </div>
                 </div>
-            </a>
-            
-            <div class="hidden lg:flex flex-1 mx-12 relative">
-                <div class="relative w-full">
-                    <input type="text" id="searchInput" oninput="handleSearch(this.value)" placeholder="Search products..." class="w-full border-2 border-gray-100 dark:border-zinc-700 bg-gray-100 dark:bg-zinc-800 rounded-full px-6 py-2 focus:bg-white focus:border-red-500 outline-none transition dark:text-white">
-                    <div id="search-results" class="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-zinc-900 shadow-2xl rounded-2xl border border-gray-100 dark:border-zinc-700 z-[100] p-2"></div>
+
+                <div class="flex items-center space-x-4 md:space-x-6 text-gray-800 dark:text-gray-200">
+                    <a href="cart.html" class="hover:text-red-600 relative p-2 transition">
+                        <i class="fa-solid fa-cart-shopping text-xl"></i>
+                        <span id="cartCount" class="absolute top-0 right-0 bg-red-600 text-white text-[10px] font-bold rounded-full h-5 w-5 flex items-center justify-center border-2 border-white">0</span>
+                    </a>
+
+                    <a href="login.html" class="hover:text-red-600 p-2 transition">
+                        <i class="fa-solid fa-user text-xl"></i>
+                    </a>
+
+                    <div class="relative group">
+                        <button class="p-2 outline-none hover:text-red-600 transition">
+                            <i class="fa-solid fa-gear text-xl"></i>
+                        </button>
+                        <div class="absolute right-0 mt-2 w-48 bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-700 rounded-2xl shadow-xl py-2 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-200 z-50">
+                            <button onclick="setTheme('light')" class="w-full flex items-center px-4 py-3 text-sm hover:bg-gray-50 dark:hover:bg-zinc-800 transition text-left">
+                                <i class="fa-regular fa-sun mr-3 text-orange-500"></i> Light Mode
+                            </button>
+                            <button onclick="setTheme('dark')" class="w-full flex items-center px-4 py-3 text-sm hover:bg-gray-50 dark:hover:bg-zinc-800 transition text-left">
+                                <i class="fa-regular fa-moon mr-3 text-indigo-500"></i> Dark Mode
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="flex items-center space-x-4 md:space-x-6 text-gray-800 dark:text-gray-200">
-                <a href="cart.html" class="hover:text-red-600 relative p-2 transition">
-                    <i class="fa-solid fa-cart-shopping text-xl"></i>
-                    <span id="cartCount" class="absolute top-0 right-0 bg-red-600 text-white text-[10px] font-bold rounded-full h-5 w-5 flex items-center justify-center border-2 border-white">0</span>
-                </a>
-
-                <div class="relative group">
-                    <button class="p-2 outline-none hover:text-red-600 transition">
-                        <i class="fa-solid fa-gear text-xl"></i>
-                    </button>
-                    <div class="absolute right-0 mt-2 w-48 bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-700 rounded-2xl shadow-xl py-2 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-200 z-50">
-                        <button onclick="setTheme('light')" class="w-full flex items-center px-4 py-3 text-sm hover:bg-gray-50 dark:hover:bg-zinc-800 transition text-left">
-                            <i class="fa-regular fa-sun mr-3 text-orange-500"></i> Light Mode
-                        </button>
-                        <button onclick="setTheme('dark')" class="w-full flex items-center px-4 py-3 text-sm hover:bg-gray-50 dark:hover:bg-zinc-800 transition text-left">
-                            <i class="fa-regular fa-moon mr-3 text-indigo-500"></i> Dark Mode
-                        </button>
-                    </div>
-                </div>
+            <div class="mt-4 lg:hidden relative">
+                <input type="text" id="mobileSearchInput" oninput="handleSearch(this.value, 'mobile-search-results')" placeholder="Search products..." class="w-full border-2 border-gray-100 dark:border-zinc-700 bg-gray-100 dark:bg-zinc-800 rounded-full px-6 py-2 focus:bg-white focus:border-red-500 outline-none transition dark:text-white">
+                <div id="mobile-search-results" class="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-zinc-900 shadow-2xl rounded-2xl border border-gray-100 dark:border-zinc-700 z-[100] p-2"></div>
             </div>
         </div>
     </nav>
@@ -186,7 +196,6 @@
 
     <script>
         const API_URL = "https://mobilestorekenya.onrender.com/api/products";
-        const CART_API_URL = "https://mobilestorekenya.onrender.com/api/cart/add";
         let allProducts = [];
 
         async function generateProducts() {
@@ -227,8 +236,8 @@
             </div>`;
         }
 
-        function handleSearch(query) {
-            const resultsDiv = document.getElementById('search-results');
+        function handleSearch(query, resultId) {
+            const resultsDiv = document.getElementById(resultId);
             if (!query.trim()) { resultsDiv.style.display = 'none'; return; }
             
             const filtered = allProducts.filter(p => p.name.toLowerCase().includes(query.toLowerCase()));
@@ -266,6 +275,7 @@
             document.getElementById('modal-specs').innerHTML = specs.map(s => s.trim() ? `<li>• ${s.trim()}</li>` : '').join('');
             document.getElementById('modal-add-btn').onclick = () => { addToCart(id); closeModal(); };
             document.getElementById('search-results').style.display = 'none';
+            document.getElementById('mobile-search-results').style.display = 'none';
         }
 
         async function addToCart(productId) {
