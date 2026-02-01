@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shipping Policy | MobileStore Kenya</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script>
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        }
+    </script>
+</head>
+<body class="bg-gray-50 dark:bg-zinc-900 transition-colors duration-300 font-sans min-h-screen">
+    <div class="container mx-auto px-6 py-16 max-w-4xl">
+        <a href="index.html" class="inline-block mb-12 text-red-600 font-bold uppercase tracking-widest text-xs hover:translate-x-[-5px] transition-transform">
+            <i class="fa-solid fa-arrow-left mr-2"></i> Back to Shop
+        </a>
+
+        <h1 class="text-4xl md:text-5xl font-black dark:text-white uppercase tracking-tighter border-l-8 border-red-600 pl-6 mb-16">Shipping <br><span class="text-red-600">Information.</span></h1>
+
+        <div class="grid grid-cols-1 gap-12">
+            <div class="flex gap-6">
+                <div class="flex-none w-12 h-12 bg-red-600 text-white rounded-full flex items-center justify-center font-black">01</div>
+                <div>
+                    <h2 class="text-xl font-black dark:text-white uppercase mb-2">Nairobi Express</h2>
+                    <p class="text-gray-600 dark:text-gray-400">Orders placed before 2 PM are delivered within 3-6 hours. Delivery fee is a flat KSh 300 within the CBD and KSh 500 for surrounding estates (Runda, Karen, Langata, etc.).</p>
+                </div>
+            </div>
+
+            <div class="flex gap-6">
+                <div class="flex-none w-12 h-12 bg-zinc-800 dark:bg-zinc-700 text-white rounded-full flex items-center justify-center font-black">02</div>
+                <div>
+                    <h2 class="text-xl font-black dark:text-white uppercase mb-2">Countrywide Shipping</h2>
+                    <p class="text-gray-600 dark:text-gray-400">We partner with G4S, Wells Fargo, and reliable shuttles for deliveries outside Nairobi. Delivery typically takes 24-48 hours. Shipping costs vary by location and package size.</p>
+                </div>
+            </div>
+
+            <div class="flex gap-6">
+                <div class="flex-none w-12 h-12 bg-zinc-800 dark:bg-zinc-700 text-white rounded-full flex items-center justify-center font-black">03</div>
+                <div>
+                    <h2 class="text-xl font-black dark:text-white uppercase mb-2">Order Tracking</h2>
+                    <p class="text-gray-600 dark:text-gray-400">Once your order is dispatched, you will receive a tracking number via SMS and Email to monitor your package in real-time.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-16 p-8 bg-zinc-100 dark:bg-zinc-800 rounded-[2rem] text-center border dark:border-zinc-700">
+            <p class="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-2">Need it faster?</p>
+            <p class="dark:text-white">Visit our physical pickup point at <span class="text-red-600 font-bold">Kimathi Street, Nairobi.</span></p>
+        </div>
+    </div>
+</body>
+</html>

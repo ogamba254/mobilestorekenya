@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trade-In Program | MobileStore Kenya</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script>
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        }
+    </script>
+</head>
+<body class="bg-gray-50 dark:bg-zinc-900 transition-colors duration-300 font-sans min-h-screen">
+    <div class="container mx-auto px-6 py-16 max-w-4xl text-center">
+        <a href="index.html" class="inline-block mb-12 text-red-600 font-bold uppercase tracking-widest text-xs mx-auto"><i class="fa-solid fa-arrow-left mr-2"></i> Back to Shop</a>
+        
+        <h1 class="text-5xl md:text-7xl font-black dark:text-white uppercase tracking-tighter mb-4">Trade Up to <br><span class="text-red-600 italic">Better Tech.</span></h1>
+        <p class="text-gray-500 uppercase font-bold tracking-[0.3em] text-xs mb-20">Turn your old phone into store credit</p>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-12 relative">
+            <div class="space-y-6">
+                <div class="w-20 h-20 bg-white dark:bg-zinc-800 rounded-3xl flex items-center justify-center mx-auto text-3xl font-black dark:text-white shadow-xl">01</div>
+                <h4 class="font-black dark:text-white uppercase tracking-tight">Assessment</h4>
+                <p class="text-sm text-gray-500">Bring your used device (Phone/Laptop) to our physical shop for a hardware valuation.</p>
+            </div>
+            <div class="space-y-6">
+                <div class="w-20 h-20 bg-red-600 rounded-3xl flex items-center justify-center mx-auto text-3xl font-black text-white shadow-xl">02</div>
+                <h4 class="font-black dark:text-white uppercase tracking-tight">Valuation</h4>
+                <p class="text-sm text-gray-500">We provide a competitive quote based on current market value and device condition.</p>
+            </div>
+            <div class="space-y-6">
+                <div class="w-20 h-20 bg-white dark:bg-zinc-800 rounded-3xl flex items-center justify-center mx-auto text-3xl font-black dark:text-white shadow-xl">03</div>
+                <h4 class="font-black dark:text-white uppercase tracking-tight">Upgrade</h4>
+                <p class="text-sm text-gray-500">The value of your old device is deducted from the price of your new dream gadget.</p>
+            </div>
+        </div>
+
+        <div class="mt-24 p-10 bg-zinc-900 text-white rounded-[3rem] shadow-2xl overflow-hidden relative">
+            <div class="absolute top-0 right-0 w-40 h-40 bg-red-600/20 blur-[60px] rounded-full"></div>
+            <h2 class="text-3xl font-black uppercase mb-4">Ready to Swap?</h2>
+            <p class="text-gray-400 mb-8 max-w-md mx-auto">We currently accept trade-ins for Apple, Samsung, and select high-end laptops.</p>
+            <a href="https://wa.me/254000000" class="inline-block bg-red-600 px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-sm hover:scale-105 transition">Get Quote via WhatsApp</a>
+        </div>
+    </div>
+</body>
+</html>

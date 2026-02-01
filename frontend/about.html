@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us | MobileStore Kenya</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script>
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        }
+    </script>
+</head>
+<body class="bg-gray-50 dark:bg-zinc-900 transition-colors duration-300 font-sans min-h-screen">
+    <div class="container mx-auto px-6 py-16 max-w-4xl">
+        <a href="index.html" class="inline-block mb-12 text-red-600 font-bold uppercase tracking-widest text-xs hover:translate-x-[-5px] transition-transform">
+            <i class="fa-solid fa-arrow-left mr-2"></i> Back to Shop
+        </a>
+        
+        <header class="mb-16">
+            <h1 class="text-5xl md:text-7xl font-black dark:text-white uppercase tracking-tighter leading-none">We are <br><span class="text-red-600 italic">MobileStore.</span></h1>
+            <p class="mt-6 text-xl text-gray-500 dark:text-gray-400 font-medium">Kenya's Premium Tech Destination since 2018.</p>
+        </header>
+        
+        <div class="space-y-12 text-gray-600 dark:text-gray-400 leading-relaxed text-lg">
+            <p>At <span class="font-bold dark:text-white">MobileStore Kenya</span>, we don't just sell gadgets; we provide the tools that empower your digital life. We noticed a gap in the Kenyan market for genuine, high-end electronics backed by real warranties, and we stepped in to fill it.</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 py-10">
+                <div class="bg-white dark:bg-zinc-800 p-8 rounded-[2.5rem] shadow-xl border border-gray-100 dark:border-zinc-700">
+                    <div class="w-14 h-14 bg-red-100 dark:bg-red-900/30 rounded-2xl flex items-center justify-center mb-6">
+                        <i class="fa-solid fa-shield-halved text-2xl text-red-600"></i>
+                    </div>
+                    <h3 class="text-xl font-black dark:text-white uppercase mb-2 tracking-tight">Authenticity</h3>
+                    <p class="text-sm">Every single device in our catalog is 100% genuine. We source directly from official manufacturers to ensure you get the real deal.</p>
+                </div>
+                <div class="bg-white dark:bg-zinc-800 p-8 rounded-[2.5rem] shadow-xl border border-gray-100 dark:border-zinc-700">
+                    <div class="w-14 h-14 bg-zinc-100 dark:bg-zinc-700 rounded-2xl flex items-center justify-center mb-6">
+                        <i class="fa-solid fa-handshake text-2xl text-zinc-600 dark:text-zinc-300"></i>
+                    </div>
+                    <h3 class="text-xl font-black dark:text-white uppercase mb-2 tracking-tight">Trust</h3>
+                    <p class="text-sm">With over 50,000+ happy customers across Kenya, our reputation is built on transparency and excellent after-sales support.</p>
+                </div>
+            </div>
+
+            <p>Our team consists of tech enthusiasts who rigorously test every product before it hits our shelves. Whether you are a student, a creative professional, or a business leader, we have the right tech to elevate your game.</p>
+        </div>
+
+        <footer class="mt-20 pt-10 border-t dark:border-zinc-800">
+            <p class="text-center text-gray-500 text-xs uppercase tracking-widest">© 2026 MobileStore Kenya</p>
+        </footer>
+    </div>
+</body>
+</html>

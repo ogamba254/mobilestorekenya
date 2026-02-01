@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Warranty Terms | MobileStore Kenya</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script>
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        }
+    </script>
+</head>
+<body class="bg-gray-50 dark:bg-zinc-900 transition-colors duration-300 font-sans min-h-screen">
+    <div class="container mx-auto px-6 py-16 max-w-5xl">
+        <a href="index.html" class="inline-block mb-12 text-red-600 font-bold uppercase tracking-widest text-xs"><i class="fa-solid fa-arrow-left mr-2"></i> Back to Shop</a>
+        
+        <h1 class="text-5xl font-black dark:text-white uppercase tracking-tighter mb-16">Warranty <span class="text-red-600">Shield.</span></h1>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-2 space-y-8">
+                <section class="bg-white dark:bg-zinc-800 p-10 rounded-[3rem] shadow-sm border border-gray-100 dark:border-zinc-700">
+                    <h2 class="text-2xl font-black dark:text-white uppercase mb-4">1. Local Warranty Coverage</h2>
+                    <p class="text-gray-600 dark:text-gray-400 leading-relaxed">All new smartphones and laptops carry a <span class="text-red-600 font-bold">1-Year Limited Manufacturer Warranty</span>. This covers hardware failure and factory defects. We only sell official East African stock, meaning your warranty is valid at any authorized service center in Kenya.</p>
+                </section>
+
+                <section class="bg-white dark:bg-zinc-800 p-10 rounded-[3rem] shadow-sm border border-gray-100 dark:border-zinc-700">
+                    <h2 class="text-2xl font-black dark:text-white uppercase mb-4">2. What is Not Covered</h2>
+                    <ul class="space-y-4 text-gray-600 dark:text-gray-400 text-sm">
+                        <li class="flex items-start gap-3"><i class="fa-solid fa-circle-xmark text-red-600 mt-1"></i> Physical damage (Broken screens, dents, or bent frames).</li>
+                        <li class="flex items-start gap-3"><i class="fa-solid fa-circle-xmark text-red-600 mt-1"></i> Liquid damage (Even for water-resistant rated devices).</li>
+                        <li class="flex items-start gap-3"><i class="fa-solid fa-circle-xmark text-red-600 mt-1"></i> Software modification (Rooting, Jailbreaking, or unofficial ROMs).</li>
+                    </ul>
+                </section>
+            </div>
+
+            <div class="space-y-8">
+                <div class="bg-red-600 text-white p-10 rounded-[3rem] flex flex-col items-center text-center">
+                    <i class="fa-solid fa-rotate-left text-5xl mb-6"></i>
+                    <h3 class="text-xl font-black uppercase mb-2">7-Day Return</h3>
+                    <p class="text-sm opacity-90 font-medium">Factory defects reported within 7 days qualify for a direct replacement or refund.</p>
+                </div>
+                <div class="bg-zinc-800 text-white p-10 rounded-[3rem] flex flex-col items-center text-center">
+                    <i class="fa-solid fa-file-invoice text-5xl mb-6"></i>
+                    <h3 class="text-xl font-black uppercase mb-2">Save Receipt</h3>
+                    <p class="text-sm opacity-90 font-medium">Your digital or physical receipt is your primary warranty document. Do not lose it.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
