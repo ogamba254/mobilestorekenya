@@ -28,11 +28,15 @@
         
         .reveal { opacity: 0; transform: translateY(30px); transition: all 0.6s ease-out; }
         .reveal.active { opacity: 1; transform: translateY(0); }
+
+        /* Header Image Hover Effect Fixed */
+        .hero-img { transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+        .hero-img:hover { transform: rotate(0deg) scale(1.05); cursor: pointer; }
         
         #toast {
             visibility: hidden; min-width: 250px; background-color: #333; color: #fff;
             text-align: center; border-radius: 12px; padding: 16px; position: fixed;
-            z-index: 1000; left: 50%; bottom: 30px; transform: translateX(-50%);
+            z-index: 4000; left: 50%; bottom: 30px; transform: translateX(-50%);
         }
         #toast.show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
         @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 30px; opacity: 1;} }
@@ -40,17 +44,9 @@
 
         #product-modal {
             display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85);
-            backdrop-filter: blur(8px); z-index: 2000; align-items: center; justify-content: center; padding: 20px;
+            backdrop-filter: blur(8px); z-index: 5000; align-items: center; justify-content: center; padding: 20px;
         }
-        /* Fixed Search Results for all screens */
-        #search-results { 
-            max-height: 400px; 
-            overflow-y: auto; 
-            display: none;
-            width: 100%;
-            left: 0;
-            right: 0;
-        }
+        #search-results { max-height: 400px; overflow-y: auto; display: none; z-index: 6000; }
         .search-item:hover { background-color: rgba(220, 38, 38, 0.1); }
     </style>
 </head>
@@ -58,16 +54,16 @@
 
     <div id="toast">Item added to cart! 🛒</div>
 
-    <div id="product-modal" onclick="closeModal(event)">
-        <div class="bg-white dark:bg-zinc-900 max-w-2xl w-full rounded-[2.5rem] overflow-hidden shadow-2xl transform transition-all" id="modal-content" onclick="event.stopPropagation()">
+    <div id="product-modal" onclick="closeModal()">
+        <div class="bg-white dark:bg-zinc-900 max-w-2xl w-full rounded-[2.5rem] overflow-hidden shadow-2xl" id="modal-content" onclick="event.stopPropagation()">
             <div class="flex flex-col md:flex-row">
-                <div class="md:w-1/2 h-64 md:h-auto bg-gray-100 dark:bg-zinc-800">
-                    <img id="modal-img" src="" class="w-full h-full object-cover">
+                <div class="md:w-1/2 bg-gray-100 dark:bg-zinc-800 flex items-center justify-center p-6">
+                    <img id="modal-img" src="" class="max-w-full max-h-64 object-contain">
                 </div>
                 <div class="md:w-1/2 p-8 space-y-4">
                     <div class="flex justify-between items-start">
-                        <h2 id="modal-name" class="text-2xl font-black dark:text-white uppercase"></h2>
-                        <button onclick="closeModal(null)" class="text-gray-400 hover:text-red-600 transition"><i class="fa-solid fa-xmark text-xl"></i></button>
+                        <h2 id="modal-name" class="text-2xl font-black dark:text-white uppercase leading-tight"></h2>
+                        <button onclick="closeModal()" class="text-gray-400 hover:text-red-600 transition"><i class="fa-solid fa-xmark text-xl"></i></button>
                     </div>
                     <div class="flex items-baseline gap-3">
                         <p id="modal-price" class="text-red-600 text-3xl font-black"></p>
@@ -96,31 +92,11 @@
             <div class="hidden lg:flex flex-1 mx-12 relative">
                 <div class="relative w-full">
                     <input type="text" id="searchInput" oninput="handleSearch(this.value)" placeholder="Search products..." class="w-full border-2 border-gray-100 dark:border-zinc-700 bg-gray-100 dark:bg-zinc-800 rounded-full px-6 py-2 focus:bg-white focus:border-red-500 outline-none transition dark:text-white">
-                    <div id="search-results" class="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-zinc-900 shadow-2xl rounded-2xl border border-gray-100 dark:border-zinc-700 z-[100] p-2 overflow-hidden"></div>
+                    <div id="search-results" class="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-zinc-900 shadow-2xl rounded-2xl border border-gray-100 dark:border-zinc-700 z-[100] p-2"></div>
                 </div>
             </div>
 
             <div class="flex items-center space-x-4 md:space-x-6 text-gray-800 dark:text-gray-200">
-                <div id="auth-area" class="hidden md:flex items-center gap-4">
-                    <a id="login-link" href="login.html" class="flex items-center gap-2 bg-gray-100 dark:bg-zinc-800 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-red-600 hover:text-white transition group">
-                        <i class="fa-solid fa-right-to-bracket text-red-600 group-hover:text-white"></i> Login
-                    </a>
-
-                    <div id="google-profile" class="hidden items-center gap-2">
-                        <img id="google-avatar" src="" alt="avatar" class="w-8 h-8 rounded-full object-cover">
-                        <span id="google-name" class="hidden md:inline text-sm font-semibold"></span>
-                        <button id="google-logout" onclick="handleGoogleSignOut()" class="ml-2 bg-red-600 text-white px-3 py-1 rounded text-xs hidden">Logout</button>
-                    </div>
-
-                    <div id="loggedin-profile" class="hidden items-center gap-3">
-                        <div class="flex items-center gap-2">
-                            <div class="w-8 h-8 rounded-full bg-red-600 text-white flex items-center justify-center font-bold text-sm" id="user-initials">U</div>
-                            <span id="user-fullname" class="hidden md:inline text-sm font-semibold"></span>
-                        </div>
-                        <button id="logout-btn" onclick="handleUserLogout()" class="ml-2 bg-red-600 text-white px-3 py-1 rounded text-xs font-bold">Logout</button>
-                    </div>
-                </div>
-
                 <a href="cart.html" class="hover:text-red-600 relative p-2 transition">
                     <i class="fa-solid fa-cart-shopping text-xl"></i>
                     <span id="cartCount" class="absolute top-0 right-0 bg-red-600 text-white text-[10px] font-bold rounded-full h-5 w-5 flex items-center justify-center border-2 border-white">0</span>
@@ -131,9 +107,6 @@
                         <i class="fa-solid fa-gear text-xl"></i>
                     </button>
                     <div class="absolute right-0 mt-2 w-48 bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-700 rounded-2xl shadow-xl py-2 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-200 z-50">
-                        <a href="profile.html" class="w-full flex items-center px-4 py-3 text-sm hover:bg-gray-50 dark:hover:bg-zinc-800 transition border-b dark:border-zinc-800">
-                            <i class="fa-regular fa-circle-user mr-3 text-red-600"></i> My Account
-                        </a>
                         <button onclick="setTheme('light')" class="w-full flex items-center px-4 py-3 text-sm hover:bg-gray-50 dark:hover:bg-zinc-800 transition text-left">
                             <i class="fa-regular fa-sun mr-3 text-orange-500"></i> Light Mode
                         </button>
@@ -155,7 +128,7 @@
             </div>
             <div class="md:w-1/2 mt-16 md:mt-0 relative flex justify-center reveal active">
                 <div class="absolute inset-0 bg-red-600/20 blur-[100px] rounded-full"></div>
-                <img src="https://images.unsplash.com/photo-1592890288564-76628a30a657?auto=format&fit=crop&q=80&w=800" class="relative z-10 w-full max-w-md rounded-[3rem] shadow-2xl rotate-3" alt="Tech Showcase">
+                <img src="https://images.unsplash.com/photo-1592890288564-76628a30a657?auto=format&fit=crop&q=80&w=800" class="hero-img relative z-10 w-full max-w-md rounded-[3rem] shadow-2xl rotate-3" alt="Tech Showcase">
             </div>
         </div>
     </header>
@@ -179,52 +152,34 @@
                         <div class="bg-red-600 text-white p-2 rounded-lg font-bold text-xl flex items-center justify-center w-10 h-10">MS</div>
                         <span class="text-xl font-black dark:text-white uppercase tracking-tighter">MobileStore</span>
                     </div>
-                    <p class="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
-                        Kenya's leading tech destination for genuine smartphones and laptops. Quality guaranteed with official local warranties.
-                    </p>
-                    <div class="flex space-x-4">
-                        <a href="#" class="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center hover:bg-red-600 transition"><i class="fa-brands fa-facebook-f"></i></a>
-                        <a href="#" class="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center hover:bg-red-600 transition"><i class="fa-brands fa-instagram"></i></a>
-                        <a href="#" class="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center hover:bg-red-600 transition"><i class="fa-brands fa-whatsapp"></i></a>
-                    </div>
+                    <p class="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">Kenya's leading tech destination for genuine smartphones and laptops. Quality guaranteed with official local warranties.</p>
                 </div>
-
                 <div>
                     <h4 class="font-black dark:text-white uppercase tracking-widest text-sm mb-6 text-red-600">Quick Links</h4>
                     <ul class="space-y-4 text-gray-500 dark:text-gray-400 text-sm">
-                        <li><a href="about.html" class="hover:text-white transition">About Us</a></li>
-                        <li><a href="contact.html" class="hover:text-white transition">Repair Center</a></li>
-                        <li><a href="trade_in_programmes.html" class="hover:text-white transition">Trade-in Program</a></li>
-                        <li><a href="contact.html" class="hover:text-white transition">Corporate Sales</a></li>
+                        <li><a href="shop.html" class="hover:text-red-600 transition">All Products</a></li>
+                        <li><a href="cart.html" class="hover:text-red-600 transition">View Cart</a></li>
+                        <li><a href="about.html" class="hover:text-red-600 transition">About Us</a></li>
+                        <li><a href="warranty.html" class="hover:text-red-600 transition">Warranty Policy</a></li>
                     </ul>
                 </div>
-
                 <div>
-                    <h4 class="font-black dark:text-white uppercase tracking-widest text-sm mb-6 text-red-600">Support</h4>
+                    <h4 class="font-black dark:text-white uppercase tracking-widest text-sm mb-6 text-red-600">Services & Support</h4>
                     <ul class="space-y-4 text-gray-500 dark:text-gray-400 text-sm">
-                        <li><a href="shipping.html" class="hover:text-white transition">Shipping Policy</a></li>
-                        <li><a href="warranty.html" class="hover:text-white transition">Warranty Terms</a></li>
-                        <li><a href="contact.html" class="hover:text-white transition">FAQs</a></li>
-                        <li><a href="contact.html" class="hover:text-white transition">Contact Us</a></li>
+                        <li><a href="shipping.html" class="hover:text-red-600 transition">Shipping Information</a></li>
+                        <li><a href="trade-in.html" class="hover:text-red-600 transition">Trade-in Programme</a></li>
+                        <li><a href="tel:+254796290064" class="hover:text-red-600 transition"><i class="fa-solid fa-phone text-red-600 mr-2"></i> +254 796 290 064</a></li>
+                        <li><a href="mailto:info@mobilestore.co.ke" class="hover:text-red-600 transition"><i class="fa-solid fa-envelope text-red-600 mr-2"></i> info@mobilestore.co.ke</a></li>
                     </ul>
                 </div>
-
                 <div>
                     <h4 class="font-black dark:text-white uppercase tracking-widest text-sm mb-6 text-red-600">Newsletter</h4>
-                    <p class="text-gray-500 dark:text-gray-400 text-sm mb-4">Get updates on latest tech arrivals.</p>
-                    <div class="flex flex-col space-y-4">
-                        <input type="email" placeholder="Email Address" class="bg-zinc-800 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-red-600 outline-none">
-                        <button class="bg-red-600 py-3 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-red-700 transition">Subscribe</button>
-                    </div>
+                    <input type="email" placeholder="Email Address" class="w-full bg-zinc-800 border-none rounded-xl px-4 py-3 text-sm mb-2 text-white outline-none">
+                    <button class="w-full bg-red-600 py-3 rounded-xl font-bold text-xs uppercase tracking-widest">Subscribe</button>
                 </div>
             </div>
-
-            <div class="border-t dark:border-zinc-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-gray-400 text-[10px] font-bold uppercase tracking-widest">
-                <p>© 2026 MobileStore Kenya. All Rights Reserved.</p>
-                <div class="flex gap-6">
-                    <a href="#" class="hover:text-red-600 transition">Privacy Policy</a>
-                    <a href="#" class="hover:text-red-600 transition">Terms of Service</a>
-                </div>
+            <div class="border-t dark:border-zinc-800 pt-8 text-center text-gray-400 text-[10px] font-bold uppercase tracking-widest">
+                © 2026 MobileStore Kenya. All Rights Reserved.
             </div>
         </div>
     </footer>
@@ -237,236 +192,116 @@
         async function generateProducts() {
             const phoneGrid = document.getElementById('phone-container');
             const laptopGrid = document.getElementById('laptop-container');
-            
             try {
                 const response = await fetch(API_URL);
-                if (!response.ok) throw new Error("Backend connection failed");
-                
-                const dbProducts = await response.json();
-                allProducts = dbProducts;
+                allProducts = await response.json();
+                phoneGrid.innerHTML = ''; laptopGrid.innerHTML = '';
 
-                phoneGrid.innerHTML = '';
-                laptopGrid.innerHTML = '';
+                allProducts.forEach(item => {
+                    let rawSpecs = item.specs || item.details || "";
+                    let specsArray = Array.isArray(rawSpecs) ? rawSpecs : rawSpecs.split(/[|,\n]/);
 
-                dbProducts.forEach(item => {
-                    let specsArray = Array.isArray(item.specs) ? item.specs : ["Genuine Product", "Official Warranty"];
-                    if (typeof item.specs === 'string') specsArray = item.specs.split('|');
-                    if (Array.isArray(item.details)) specsArray = item.details;
-
-                    const img = item.img || item.images?.[0] || 'https://via.placeholder.com/400';
-                    const cardHTML = createCard(item.name, item.price, img, specsArray, item.oldPrice, item._id);
-                    
-                    if (item.category === "Smartphone") {
-                        phoneGrid.innerHTML += cardHTML;
-                    } else {
-                        laptopGrid.innerHTML += cardHTML;
-                    }
+                    const card = createCard(item.name, item.price, item.img, specsArray, item.oldPrice, item._id);
+                    if (item.category === "Smartphone") phoneGrid.innerHTML += card;
+                    else laptopGrid.innerHTML += card;
                 });
-
-                if (dbProducts.length === 0) {
-                    phoneGrid.innerHTML = `<p class="col-span-full text-center text-gray-400 py-10 font-bold uppercase">No products found in database.</p>`;
-                }
-            } catch (error) {
-                console.error("Error:", error);
-                phoneGrid.innerHTML = `<p class="col-span-full text-center text-red-600 font-bold uppercase">Server Offline: Check your Node.js backend.</p>`;
-            }
-            initObserver();
+                initObserver();
+            } catch (error) { console.error("Error:", error); }
         }
 
         function createCard(name, price, img, specs, oldPrice, id) {
             const cleanName = name.replace(/'/g, "\\'").replace(/"/g, '&quot;');
             const specsStr = specs.join('|').replace(/'/g, "\\'");
-            
             return `
             <div class="reveal bg-white dark:bg-zinc-800 p-4 rounded-3xl border dark:border-zinc-700 cursor-pointer group" 
                  onclick="openModal('${cleanName}', ${price}, '${img}', '${specsStr}', ${oldPrice || 'null'}, '${id}')">
-                <div class="relative overflow-hidden rounded-2xl mb-4">
-                    <img src="${img || 'https://via.placeholder.com/400'}" class="w-full h-48 object-cover group-hover:scale-110 transition duration-500">
-                    ${oldPrice ? `<span class="absolute top-3 left-3 bg-red-600 text-white text-[10px] px-2 py-1 rounded-full font-black uppercase">Sale</span>` : ''}
+                <div class="relative overflow-hidden rounded-2xl mb-4 bg-gray-50 dark:bg-zinc-900 h-48 flex items-center justify-center">
+                    <img src="${img}" class="max-h-full max-w-full object-contain group-hover:scale-110 transition duration-500">
                 </div>
-                <h3 class="font-bold text-sm truncate dark:text-white uppercase tracking-tight">${name}</h3>
+                <h3 class="font-bold text-sm truncate dark:text-white uppercase">${name}</h3>
                 <div class="flex items-center gap-2 mt-2">
                     <p class="text-red-600 font-black">KSh ${price.toLocaleString()}</p>
                     ${oldPrice ? `<p class="text-gray-400 text-xs line-through italic">KSh ${oldPrice.toLocaleString()}</p>` : ''}
                 </div>
-                <button class="w-full mt-4 bg-gray-100 dark:bg-zinc-700 dark:text-white py-2 rounded-xl text-xs font-bold group-hover:bg-red-600 group-hover:text-white transition uppercase">View Details</button>
+                <button class="w-full mt-4 bg-gray-100 dark:bg-zinc-700 dark:text-white py-2 rounded-xl text-xs font-bold group-hover:bg-red-600 group-hover:text-white transition uppercase">Details</button>
             </div>`;
         }
 
-        function openModal(name, price, img, specsString, oldPrice, id) {
-            const modal = document.getElementById('product-modal');
-            const specs = specsString.split('|');
+        function handleSearch(query) {
+            const resultsDiv = document.getElementById('search-results');
+            if (!query.trim()) { resultsDiv.style.display = 'none'; return; }
             
+            const filtered = allProducts.filter(p => p.name.toLowerCase().includes(query.toLowerCase()));
+            if (filtered.length > 0) {
+                resultsDiv.style.display = 'block';
+                resultsDiv.innerHTML = filtered.map(p => {
+                    let rawSpecs = p.specs || p.details || "";
+                    let specsStr = Array.isArray(rawSpecs) ? rawSpecs.join('|') : rawSpecs.replace(/\n/g, '|');
+                    return `
+                    <div class="search-item p-3 cursor-pointer border-b dark:border-zinc-800 flex items-center gap-4" 
+                         onclick="openModal('${p.name.replace(/'/g, "\\'")}', ${p.price}, '${p.img}', '${specsStr.replace(/'/g, "\\'")}', ${p.oldPrice || 'null'}, '${p._id}')">
+                        <img src="${p.img}" class="w-10 h-10 object-contain">
+                        <div>
+                            <p class="text-sm font-bold dark:text-white">${p.name}</p>
+                            <p class="text-xs text-red-600">KSh ${p.price.toLocaleString()}</p>
+                        </div>
+                    </div>`;
+                }).join('');
+            } else { resultsDiv.style.display = 'none'; }
+        }
+
+        function openModal(name, price, img, specsString, oldPrice, id) {
+            document.getElementById('product-modal').style.display = 'flex';
             document.getElementById('modal-name').innerText = name;
-            document.getElementById('modal-price').innerText = `KSh ${Number(price).toLocaleString()}`;
+            document.getElementById('modal-price').innerText = `KSh ${price.toLocaleString()}`;
+            document.getElementById('modal-img').src = img;
             
             const oldPriceEl = document.getElementById('modal-old-price');
             if(oldPrice && oldPrice !== "null") {
                 oldPriceEl.innerText = `KSh ${Number(oldPrice).toLocaleString()}`;
                 oldPriceEl.classList.remove('hidden');
-            } else {
-                oldPriceEl.classList.add('hidden');
-            }
+            } else { oldPriceEl.classList.add('hidden'); }
 
-            document.getElementById('modal-img').src = img || 'https://via.placeholder.com/400';
-            document.getElementById('modal-specs').innerHTML = specs.map(s => `<li>• ${s}</li>`).join('');
+            const specs = specsString.split('|');
+            document.getElementById('modal-specs').innerHTML = specs.map(s => s.trim() ? `<li>• ${s.trim()}</li>` : '').join('');
+            document.getElementById('modal-add-btn').onclick = () => { addToCart(id); closeModal(); };
+            document.getElementById('search-results').style.display = 'none';
+        }
+
+        async function addToCart(productId) {
+            const prod = allProducts.find(p => p._id === productId);
+            if(!prod) return;
+            let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            const existing = cart.find(i => i.id === productId);
+            if (existing) existing.quantity += 1;
+            else cart.push({ id: productId, name: prod.name, price: prod.price, img: prod.img, quantity: 1 });
             
-            document.getElementById('modal-add-btn').onclick = () => { 
-                addToCart(id); 
-                closeModal(); 
-            };
-            
-            modal.style.display = 'flex';
+            localStorage.setItem('cart', JSON.stringify(cart));
+            updateCartCount();
+            showToast();
+        }
+
+        function updateCartCount() {
+            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            const total = cart.reduce((sum, item) => sum + item.quantity, 0);
+            const badge = document.getElementById('cartCount');
+            if (badge) {
+                badge.innerText = total;
+                badge.style.display = total > 0 ? 'flex' : 'none';
+            }
         }
 
         function closeModal() { document.getElementById('product-modal').style.display = 'none'; }
-
-        async function addToCart(productId) {
-            const userId = "65b8f1e2c3d4e5f6a7b8c9d0"; 
-            try {
-                const response = await fetch(CART_API_URL, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ userId, productId, quantity: 1 })
-                });
-
-                try {
-                    const prod = allProducts.find(p => p._id === productId) || {};
-                    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-                    const existing = cart.find(i => i._id === productId);
-                    if (existing) {
-                        existing.quantity = (existing.quantity || 1) + 1;
-                    } else {
-                        cart.push({ _id: productId, name: prod.name || 'Item', price: prod.price || 0, img: prod.img || '', quantity: 1 });
-                    }
-                    localStorage.setItem('cart', JSON.stringify(cart));
-                } catch (e) { console.warn('local cart update failed', e); }
-
-                showToast();
-                updateCartCount();
-            } catch (error) {
-                console.error("Cart Error:", error);
-            }
-        }
-
-        async function updateCartCount() {
-            try {
-                const localCart = JSON.parse(localStorage.getItem('cart') || '[]');
-                const countEl = document.getElementById('cartCount');
-                if (localCart && localCart.length > 0) {
-                    const total = localCart.reduce((acc, item) => acc + (item.quantity || 1), 0);
-                    if (countEl) countEl.innerText = total;
-                    return;
-                }
-            } catch (e) { console.log("Cart count update failed", e); }
-        }
-
-        function handleSearch(query) {
-            const resultsBox = document.getElementById('search-results');
-            if (!query.trim()) { resultsBox.style.display = 'none'; return; }
-            
-            const filtered = allProducts.filter(p => p.name.toLowerCase().includes(query.toLowerCase())).slice(0, 8);
-            resultsBox.style.display = 'block';
-
-            if (filtered.length > 0) {
-                resultsBox.innerHTML = filtered.map(p => {
-                    const img = p.img || p.images?.[0] || 'https://via.placeholder.com/40';
-                    const specs = (p.details && Array.isArray(p.details)) ? p.details.join('|') : (p.specs ? (Array.isArray(p.specs) ? p.specs.join('|') : p.specs) : '');
-                    return `
-                    <div onclick="openModal('${p.name.replace(/'/g, "\\'")}', ${p.price}, '${img}', '${specs}', ${p.oldPrice || 'null'}, '${p._id}')" class="search-item flex items-center p-3 cursor-pointer gap-4 border-b last:border-0 dark:border-zinc-800">
-                        <img src="${img}" class="w-10 h-10 rounded object-cover">
-                        <div class="flex-1">
-                            <h4 class="text-sm font-bold dark:text-white uppercase">${p.name}</h4>
-                            <p class="text-red-600 text-xs font-black">KSh ${p.price.toLocaleString()}</p>
-                        </div>
-                    </div>`;
-                }).join('');
-            } else {
-                // FEATURE: Product not available message
-                resultsBox.innerHTML = `
-                    <div class="p-6 text-center">
-                        <i class="fa-solid fa-magnifying-glass text-gray-300 dark:text-zinc-700 text-3xl mb-2"></i>
-                        <p class="text-gray-500 dark:text-gray-400 text-sm font-bold uppercase tracking-tight">
-                            Product not available
-                        </p>
-                        <p class="text-[10px] text-gray-400 uppercase mt-1">Try a different keyword or contact support</p>
-                    </div>`;
-            }
-        }
-
-        function setTheme(theme) {
-            theme === 'dark' ? document.documentElement.classList.add('dark') : document.documentElement.classList.remove('dark');
-            localStorage.setItem('theme', theme);
-        }
-
+        function showToast() { const t = document.getElementById("toast"); t.className = "show"; setTimeout(() => t.className = "", 3000); }
+        function setTheme(t) { t === 'dark' ? document.documentElement.classList.add('dark') : document.documentElement.classList.remove('dark'); localStorage.setItem('theme', t); }
         function initObserver() {
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('active'); });
-            }, { threshold: 0.1 });
+            });
             document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
         }
 
-        function showToast() { 
-            const t = document.getElementById("toast"); t.className = "show"; 
-            setTimeout(() => t.className = "", 3000); 
-        }
-
-        function initGoogleUI() {
-            const g = localStorage.getItem('googleUser');
-            const u = localStorage.getItem('loggedInUser');
-            const token = localStorage.getItem('authToken');
-            const loginLink = document.getElementById('login-link');
-            const gp = document.getElementById('google-profile');
-            const lp = document.getElementById('loggedin-profile');
-            const avatar = document.getElementById('google-avatar');
-            const nameEl = document.getElementById('google-name');
-            const logoutBtn = document.getElementById('google-logout');
-            
-            if (u && token && !g) {
-                try {
-                    const user = JSON.parse(u);
-                    const initials = (user.firstName ? user.firstName[0] : '') + (user.lastName ? user.lastName[0] : '');
-                    document.getElementById('user-fullname').textContent = (user.firstName + ' ' + user.lastName).trim() || user.email;
-                    document.getElementById('user-initials').textContent = initials.toUpperCase() || 'U';
-                    lp.classList.remove('hidden');
-                    gp.classList.add('hidden');
-                    loginLink.classList.add('hidden');
-                } catch (e) { console.error('Invalid loggedInUser', e); }
-            }
-            else if (g) {
-                try {
-                    const obj = JSON.parse(g);
-                    avatar.src = obj.imageUrl || obj.picture || '';
-                    nameEl.textContent = obj.name || obj.email || '';
-                    gp.classList.remove('hidden');
-                    lp.classList.add('hidden');
-                    loginLink.classList.add('hidden');
-                    logoutBtn.classList.remove('hidden');
-                } catch (e) { console.error('Invalid googleUser', e); }
-            } else {
-                gp.classList.add('hidden');
-                lp.classList.add('hidden');
-                loginLink.classList.remove('hidden');
-            }
-        }
-        
-        function handleUserLogout() {
-            localStorage.removeItem('loggedInUser');
-            localStorage.removeItem('authToken');
-            window.location.href = 'index.html';
-        }
-
-        function handleGoogleSignOut() {
-            localStorage.removeItem('googleUser');
-            localStorage.removeItem('authToken');
-            window.location.href = 'index.html';
-        }
-
-        window.onload = () => {
-            generateProducts();
-            updateCartCount();
-            initGoogleUI();
-        };
+        window.onload = () => { generateProducts(); updateCartCount(); };
     </script>
 </body>
 </html>
