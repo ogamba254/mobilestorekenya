@@ -14,6 +14,14 @@
             display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.7);
             backdrop-filter: blur(5px); z-index: 1000; align-items: center; justify-content: center; padding: 20px;
         }
+        /* Added for Image Removal Adjustment */
+        .preview-slot { position: relative; }
+        .remove-img { 
+            position: absolute; top: -5px; right: -5px; background: #dc2626; 
+            color: white; width: 18px; height: 18px; border-radius: 50%; 
+           display: flex; align-items: center; justify-content: center;
+            border: 2px solid white; z-index: 10;
+        }
     </style>
 </head>
 <body class="bg-gray-50 dark:bg-zinc-950 font-sans transition-colors duration-300">
@@ -54,18 +62,36 @@
                 </div>
 
                 <div class="space-y-2">
-                    <label class="text-xs font-bold uppercase text-gray-400">Product Image</label>
-                    <div class="flex items-center gap-4">
-                        <div class="w-16 h-16 bg-gray-100 dark:bg-zinc-800 rounded-xl flex items-center justify-center overflow-hidden">
-                            <img id="preview-img" src="" class="hidden w-full h-full object-cover">
-                            <i id="preview-icon" class="fa-solid fa-image text-gray-400"></i>
+                    <div class="flex justify-between items-center">
+                        <label class="text-xs font-bold uppercase text-gray-400">Product Images (Up to 6)</label>
+                        <button type="button" onclick="clearImages()" class="text-[10px] text-red-500 font-bold uppercase hover:underline">Clear All</button>
+                    </div>
+                    <input type="file" id="item-images" accept="image/*" multiple onchange="previewMultipleFiles()" class="hidden">
+                    
+                    <div id="image-preview-grid" class="grid grid-cols-3 md:grid-cols-6 gap-2">
+                        <div onclick="triggerFileInput()" class="preview-slot cursor-pointer w-full h-16 bg-gray-100 dark:bg-zinc-800 rounded-xl flex items-center justify-center overflow-hidden border-2 border-dashed border-gray-200 dark:border-zinc-700 hover:border-red-500 transition-all">
+                            <img class="hidden w-full h-full object-cover"><i class="fa-solid fa-camera text-gray-400 text-xs"></i>
                         </div>
-                        <input type="file" id="item-image" accept="image/*" onchange="previewFile()" class="text-sm dark:text-gray-400">
+                        <div onclick="triggerFileInput()" class="preview-slot cursor-pointer w-full h-16 bg-gray-100 dark:bg-zinc-800 rounded-xl flex items-center justify-center overflow-hidden border-2 border-dashed border-gray-200 dark:border-zinc-700 hover:border-red-500 transition-all">
+                            <img class="hidden w-full h-full object-cover"><i class="fa-solid fa-camera text-gray-400 text-xs"></i>
+                        </div>
+                        <div onclick="triggerFileInput()" class="preview-slot cursor-pointer w-full h-16 bg-gray-100 dark:bg-zinc-800 rounded-xl flex items-center justify-center overflow-hidden border-2 border-dashed border-gray-200 dark:border-zinc-700 hover:border-red-500 transition-all">
+                            <img class="hidden w-full h-full object-cover"><i class="fa-solid fa-camera text-gray-400 text-xs"></i>
+                        </div>
+                        <div onclick="triggerFileInput()" class="preview-slot cursor-pointer w-full h-16 bg-gray-100 dark:bg-zinc-800 rounded-xl flex items-center justify-center overflow-hidden border-2 border-dashed border-gray-200 dark:border-zinc-700 hover:border-red-500 transition-all">
+                            <img class="hidden w-full h-full object-cover"><i class="fa-solid fa-camera text-gray-400 text-xs"></i>
+                        </div>
+                        <div onclick="triggerFileInput()" class="preview-slot cursor-pointer w-full h-16 bg-gray-100 dark:bg-zinc-800 rounded-xl flex items-center justify-center overflow-hidden border-2 border-dashed border-gray-200 dark:border-zinc-700 hover:border-red-500 transition-all">
+                            <img class="hidden w-full h-full object-cover"><i class="fa-solid fa-camera text-gray-400 text-xs"></i>
+                        </div>
+                        <div onclick="triggerFileInput()" class="preview-slot cursor-pointer w-full h-16 bg-gray-100 dark:bg-zinc-800 rounded-xl flex items-center justify-center overflow-hidden border-2 border-dashed border-gray-200 dark:border-zinc-700 hover:border-red-500 transition-all">
+                            <img class="hidden w-full h-full object-cover"><i class="fa-solid fa-camera text-gray-400 text-xs"></i>
+                        </div>
                     </div>
                 </div>
 
                 <div class="space-y-2">
-                    <label class="text-xs font-bold uppercase text-gray-400">Details</label>
+                    <label class="text-xs font-bold uppercase text-gray-400">Details (One per line)</label>
                     <textarea id="item-details" rows="2" class="w-full bg-gray-50 dark:bg-zinc-800 border dark:border-zinc-700 p-3 rounded-xl dark:text-white"></textarea>
                 </div>
 
@@ -124,6 +150,7 @@
                     </table>
                 </div>
             </div>
+
             <div id="orders-section" class="hidden space-y-6">
                 <div class="flex justify-between items-center">
                     <h3 class="font-bold text-xl dark:text-white">Customer Orders</h3>
@@ -153,122 +180,128 @@
         let filteredInventory = [];
         let editingProductId = null;
         let searchQuery = '';
+        let productImagesArray = []; 
 
-        // Check if user is logged in as admin
         window.addEventListener('load', () => {
             const token = localStorage.getItem('authToken');
             const role = localStorage.getItem('userRole');
-            
             if (!token || role !== 'admin') {
                 alert('Access denied. Admin login required.');
                 window.location.href = 'login.html';
                 return;
             }
             loadInventoryFromAPI();
-            updateStats();
             loadAdminOrders();
         });
 
-        // Fetch products from API
         async function loadInventoryFromAPI() {
             try {
                 const response = await fetch(API_URL);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
                 const text = await response.text();
-                if (!text) {
-                    console.log('Empty response from server');
-                    inventory = [];
-                    loadInventory();
-                    return;
-                }
-
-                inventory = JSON.parse(text);
+                inventory = text ? JSON.parse(text) : [];
                 loadInventory();
+                updateStats();
             } catch (error) {
                 console.error('Error loading inventory:', error);
-                alert('Failed to load products from server: ' + error.message);
                 inventory = [];
                 loadInventory();
             }
         }
 
-        function saveToStorage() {
-            localStorage.setItem('msk_inventory', JSON.stringify(inventory));
-            loadInventory();
-            updateStats();
+        function triggerFileInput() {
+            document.getElementById('item-images').click();
         }
 
-        function previewFile() {
-            const preview = document.getElementById('preview-img');
-            const file = document.getElementById('item-image').files[0];
-            const reader = new FileReader();
-            reader.onloadend = () => { preview.src = reader.result; preview.classList.remove('hidden'); document.getElementById('preview-icon').classList.add('hidden'); }
-            if (file) reader.readAsDataURL(file);
+        function clearImages() {
+            productImagesArray = [];
+            updateImageGrid();
+            document.getElementById('item-images').value = "";
+        }
+
+        /* Adjustment: Individual Image Removal */
+        function removeImage(index, event) {
+            event.stopPropagation();
+            productImagesArray.splice(index, 1);
+            updateImageGrid();
+        }
+
+        function previewMultipleFiles() {
+            const files = document.getElementById('item-images').files;
+            Array.from(files).forEach(file => {
+                if (productImagesArray.length < 6) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        productImagesArray.push(e.target.result);
+                        updateImageGrid();
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+
+        function updateImageGrid() {
+            const slots = document.querySelectorAll('.preview-slot');
+            slots.forEach((slot, index) => {
+                const imgTag = slot.querySelector('img');
+                const iconTag = slot.querySelector('i');
+                
+                // Clear previous remove button
+                const existingBtn = slot.querySelector('.remove-img');
+                if(existingBtn) existingBtn.remove();
+
+                if (productImagesArray[index]) {
+                    imgTag.src = productImagesArray[index];
+                    imgTag.classList.remove('hidden');
+                    iconTag.classList.add('hidden');
+                    
+                    /* Adjustment: Add Removal Icon */
+                    const removeBtn = document.createElement('div');
+                    removeBtn.className = 'remove-img';
+                    removeBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+                    removeBtn.onclick = (e) => removeImage(index, e);
+                    slot.appendChild(removeBtn);
+                } else {
+                    imgTag.classList.add('hidden');
+                    iconTag.classList.remove('hidden');
+                }
+            });
         }
 
         async function handleProductSubmit(e) {
             e.preventDefault();
-            
             const token = localStorage.getItem('authToken');
-            if (!token) {
-                alert('You must be logged in as admin to add products');
-                return;
-            }
-
+            
             const newItem = {
                 name: document.getElementById('item-name').value,
                 price: parseInt(document.getElementById('item-price').value),
                 oldPrice: document.getElementById('item-old-price').value ? parseInt(document.getElementById('item-old-price').value) : null,
                 category: document.getElementById('item-category').value,
-                img: document.getElementById('preview-img').src || 'https://via.placeholder.com/150',
-                details: document.getElementById('item-details').value.split('\n').filter(d => d.trim())
+                img: productImagesArray[0] || 'https://via.placeholder.com/150', 
+                images: productImagesArray, 
+                /* Adjustment: Changed details to specs to match shop frontend */
+                specs: document.getElementById('item-details').value.split('\n').map(d => d.trim()).filter(d => d !== "")
             };
 
             try {
-                let url = `${API_URL}/add`;
-                let method = 'POST';
-
-                // If editing, use PUT method
-                if (editingProductId) {
-                    url = `${API_URL}/${editingProductId}`;
-                    method = 'PUT';
-                }
+                const url = editingProductId ? `${API_URL}/${editingProductId}` : `${API_URL}/add`;
+                const method = editingProductId ? 'PUT' : 'POST';
 
                 const response = await fetch(url, {
                     method: method,
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                     body: JSON.stringify(newItem)
                 });
 
-                if (!response.ok) {
-                    const text = await response.text();
-                    console.error('Server response:', text);
-                    alert('Failed to save product: ' + text);
-                    return;
-                }
-
-                const data = await response.json();
-
-                if (response.status === 201 || response.status === 200) {
-                    if (editingProductId) {
-                        alert('Product updated successfully! ✅');
-                    } else {
-                        alert('Product added successfully! 🎉');
-                    }
+                if (response.ok) {
+                    alert('Success!');
                     loadInventoryFromAPI();
                     closeProductModal();
                 } else {
-                    alert('Failed to save product: ' + (data.msg || data.message || 'Unknown error'));
+                    const data = await response.json();
+                    alert('Error: ' + (data.message || 'Server error'));
                 }
             } catch (error) {
-                console.error('Full Error:', error);
-                alert('Error: ' + error.message + '\n\nMake sure backend is running or that API is reachable at https://mobilestorekenya.onrender.com');
+                alert('Connection Error: ' + error.message);
             }
         }
 
@@ -279,12 +312,11 @@
                 <tr class="border-t dark:border-zinc-800 dark:text-white">
                     <td class="p-5 flex items-center gap-3">
                         <img src="${item.img || 'https://via.placeholder.com/150'}" class="w-10 h-10 rounded shadow object-cover">
-                        <span class="font-bold">${item.name}</span>
+                        <span class="font-bold uppercase text-xs">${item.name}</span>
                     </td>
-                    <td class="p-5 text-sm">${item.category}</td>
+                    <td class="p-5 text-sm font-bold text-gray-400">${item.category}</td>
                     <td class="p-5">
-                        <span class="text-red-600 font-bold">KSh ${item.price.toLocaleString()}</span>
-                        ${item.oldPrice ? `<span class="text-xs text-gray-400 line-through ml-2">KSh ${item.oldPrice.toLocaleString()}</span>` : ''}
+                        <span class="text-red-600 font-black">KSh ${item.price.toLocaleString()}</span>
                     </td>
                     <td class="p-5 text-right">
                         <button onclick="editItem('${item._id}')" class="text-gray-400 hover:text-blue-600 mr-3"><i class="fa-solid fa-edit"></i></button>
@@ -292,153 +324,109 @@
                     </td>
                 </tr>
             `).join('');
+        }
+
+        async function editItem(id) {
+            const product = inventory.find(p => p._id === id);
+            if (!product) return;
+
+            editingProductId = id;
+            document.getElementById('modal-title').innerText = 'Edit Product';
+            document.getElementById('item-name').value = product.name;
+            document.getElementById('item-category').value = product.category;
+            document.getElementById('item-price').value = product.price;
+            document.getElementById('item-old-price').value = product.oldPrice || '';
             
-            // Update search count
-            if (searchQuery) {
-                const searchCount = document.getElementById('search-count');
-                searchCount.textContent = `${displayItems.length} result${displayItems.length !== 1 ? 's' : ''}`;
-            } else {
-                document.getElementById('search-count').textContent = '';
-            }
+            /* Adjustment: Load from specs or details */
+            const displaySpecs = product.specs || product.details || [];
+            document.getElementById('item-details').value = displaySpecs.join('\n');
+            
+            productImagesArray = product.images || (product.img ? [product.img] : []);
+            updateImageGrid();
+            document.getElementById('add-product-modal').style.display = 'flex';
+        }
+
+        function closeProductModal() { 
+            editingProductId = null;
+            clearImages();
+            document.getElementById('add-product-modal').style.display = 'none'; 
+            document.getElementById('product-form').reset(); 
         }
 
         function handleProductSearch(query) {
             searchQuery = query.toLowerCase().trim();
-            if (searchQuery) {
-                filteredInventory = inventory.filter(item => 
-                    item.name.toLowerCase().includes(searchQuery) || 
-                    item.category.toLowerCase().includes(searchQuery)
-                );
-            }
+            filteredInventory = inventory.filter(item => 
+                item.name.toLowerCase().includes(searchQuery) || 
+                item.category.toLowerCase().includes(searchQuery)
+            );
             loadInventory();
         }
 
         async function deleteItem(id) {
             if(!confirm('Remove this product?')) return;
-            
             const token = localStorage.getItem('authToken');
-            if (!token) {
-                alert('You must be logged in to delete products');
-                return;
-            }
-
             try {
-                const response = await fetch(`${API_URL}/${id}`, {
+                await fetch(`${API_URL}/${id}`, {
                     method: 'DELETE',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
-
-                if (response.ok || response.status === 404) {
-                    inventory = inventory.filter(item => item._id !== id);
-                    loadInventory();
-                    updateStats();
-                } else {
-                    alert('Failed to delete product');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Connection error');
-            }
+                loadInventoryFromAPI();
+            } catch (e) { alert('Delete failed'); }
         }
 
-        function updateStats() { document.getElementById('stat-count').innerText = inventory.length; }
+        function updateStats() { 
+            const statEl = document.getElementById('stat-count');
+            if (statEl) statEl.innerText = inventory.length; 
+        }
+
+        /* Adjustment: Fix ghost images on open */
         function openProductModal() { 
             editingProductId = null;
             document.getElementById('modal-title').innerText = 'Add New Item';
-            document.getElementById('product-form').reset();
-            document.getElementById('preview-img').src = '';
-            document.getElementById('preview-img').classList.add('hidden');
-            document.getElementById('preview-icon').classList.remove('hidden');
+            clearImages();
+            document.getElementById('product-form').reset(); 
             document.getElementById('add-product-modal').style.display = 'flex'; 
         }
-        function closeProductModal() { 
-            editingProductId = null;
-            document.getElementById('add-product-modal').style.display = 'none'; 
-            document.getElementById('product-form').reset(); 
-            document.getElementById('preview-img').src = '';
-            document.getElementById('preview-img').classList.add('hidden');
-            document.getElementById('preview-icon').classList.remove('hidden');
-        }
 
-        async function editItem(id) {
-            const product = inventory.find(p => p._id === id);
-            if (!product) {
-                alert('Product not found');
-                return;
-            }
-
-            editingProductId = id;
-            document.getElementById('modal-title').innerText = 'Edit Product';
-            
-            // Fill form with current product data
-            document.getElementById('item-name').value = product.name;
-            document.getElementById('item-category').value = product.category;
-            document.getElementById('item-price').value = product.price;
-            document.getElementById('item-old-price').value = product.oldPrice || '';
-            document.getElementById('item-details').value = (product.details || []).join('\n');
-            
-            // Set image preview
-            if (product.img) {
-                document.getElementById('preview-img').src = product.img;
-                document.getElementById('preview-img').classList.remove('hidden');
-                document.getElementById('preview-icon').classList.add('hidden');
-            }
-            
-            document.getElementById('add-product-modal').style.display = 'flex';
-        }
-        
         function showSection(section) {
             document.getElementById('dashboard-section').classList.add('hidden');
             document.getElementById('inventory-section').classList.add('hidden');
+            document.getElementById('orders-section').classList.add('hidden');
             document.getElementById(section + '-section').classList.remove('hidden');
+            
             document.querySelectorAll('.sidebar-link').forEach(btn => btn.classList.remove('active'));
-            event.currentTarget.classList.add('active');
+            const activeBtn = Array.from(document.querySelectorAll('.sidebar-link')).find(btn => btn.innerText.toLowerCase().includes(section));
+            if (activeBtn) activeBtn.classList.add('active');
+            
+            document.getElementById('section-title').innerText = section.toUpperCase() + ' Overview';
         }
 
-        // Initialize Chart
         const salesCtx = document.getElementById('salesChart').getContext('2d');
         new Chart(salesCtx, { type: 'line', data: { labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], datasets: [{ label: 'Sales', data: [5,12,8,15,10,20,18], borderColor: '#dc2626', tension: 0.4 }] } });
 
-        // Load all orders (admin)
         async function loadAdminOrders() {
             const token = localStorage.getItem('authToken');
             if (!token) return;
-
             try {
                 const resp = await fetch('https://mobilestorekenya.onrender.com/api/orders/all', { headers: { 'Authorization': 'Bearer ' + token } });
-                if (!resp.ok) throw new Error('Failed to fetch orders');
                 const orders = await resp.json();
                 renderOrdersTable(orders);
-            } catch (e) {
-                console.error('loadAdminOrders error', e);
-            }
+            } catch (e) { console.error(e); }
         }
 
         function renderOrdersTable(orders) {
             const tbody = document.getElementById('orders-table');
             if (!tbody) return;
-            tbody.innerHTML = orders.map(o => {
-                const customer = o.user ? `${o.user.username || o.user.email}` : 'Guest';
-                const itemsHtml = (o.items || []).map(it => {
-                    const name = it.product ? it.product.name : (it.name || 'Unknown');
-                    const qty = it.quantity || 1;
-                    const price = (it.priceAtPurchase || (it.product && it.product.price) || 0).toLocaleString();
-                    return `<div class="flex items-center gap-2"><img src="${it.product && it.product.img ? it.product.img : 'https://via.placeholder.com/40'}" class="w-8 h-8 object-cover rounded"/><div><div class=\"font-bold\">${name}</div><div class=\"text-xs text-gray-400\">Qty: ${qty} • KSh ${price}</div></div></div>`;
-                }).join('<hr class="my-2"/>');
-
-                return `
-                    <tr class="border-t dark:border-zinc-800 dark:text-white align-top">
-                        <td class="p-3"><div class="font-bold">${o._id}</div><div class="text-xs text-gray-400">${o.paymentMethod || ''}</div></td>
-                        <td class="p-3">${customer}</td>
-                        <td class="p-3">${itemsHtml}</td>
-                        <td class="p-3">KSh <span class="font-black text-red-600">${(o.totalAmount || 0).toLocaleString()}</span></td>
-                        <td class="p-3">${o.status || ''}</td>
-                        <td class="p-3">${new Date(o.orderDate).toLocaleString()}</td>
-                    </tr>
-                `;
-            }).join('');
+            tbody.innerHTML = orders.map(o => `
+                <tr class="border-t dark:border-zinc-800 dark:text-white align-top">
+                    <td class="p-3"><div class="font-bold text-xs">${o._id.slice(-5)}</div></td>
+                    <td class="p-3">${o.user ? o.user.username : 'Guest'}</td>
+                    <td class="p-3">${(o.items || []).length} items</td>
+                    <td class="p-3 font-black text-red-600 text-sm">KSh ${(o.totalAmount || 0).toLocaleString()}</td>
+                    <td class="p-3"><span class="bg-gray-100 dark:bg-zinc-800 px-2 py-1 rounded text-[10px] uppercase font-bold">${o.status}</span></td>
+                    <td class="p-3 text-xs">${new Date(o.orderDate).toLocaleDateString()}</td>
+                </tr>
+            `).join('');
         }
     </script>
 </body>
